@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       blocks,
     });
 
-    if (!isSlotAvailableForBooking(data.tee_time, availableSlots)) {
+    if (!isSlotAvailableForBooking(data.tee_time, data.players, availableSlots)) {
       return NextResponse.json(
         {
           error: "That tee time is no longer available. Please choose another time.",

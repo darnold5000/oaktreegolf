@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface AvailableTeeTimesProps {
-  slots: { time: string; label: string }[];
+  slots: {
+    time: string;
+    label: string;
+    spotsRemaining?: number;
+  }[];
   selectedTime?: string;
   onSelect: (time: string) => void;
   loading?: boolean;
@@ -42,10 +46,15 @@ export function AvailableTeeTimes({
           key={slot.time}
           type="button"
           variant={selectedTime === slot.time ? "default" : "outline"}
-          className={cn("h-12 text-base", selectedTime === slot.time && "ring-2 ring-primary/30")}
+          className={cn("h-auto min-h-12 flex-col py-2 text-base", selectedTime === slot.time && "ring-2 ring-primary/30")}
           onClick={() => onSelect(slot.time)}
         >
-          {slot.label}
+          <span>{slot.label.split(" — ")[0]}</span>
+          {slot.spotsRemaining !== undefined && (
+            <span className="text-xs font-normal opacity-80">
+              {slot.spotsRemaining === 1 ? "1 spot left" : `${slot.spotsRemaining} spots left`}
+            </span>
+          )}
         </Button>
       ))}
     </div>

@@ -82,12 +82,26 @@ export interface CourseStatus {
 export interface TeeSheetSlot {
   time: string;
   label: string;
-  type: "open" | "booking" | "blocked";
-  booking?: Booking;
+  type: "open" | "partial" | "full" | "blocked";
+  bookings: Booking[];
+  bookedPlayers: number;
+  maxPlayers: number;
+  spotsRemaining: number;
   block?: BlockedTime;
 }
 
 export interface AvailableSlot {
   time: string;
   label: string;
+  spotsRemaining: number;
+  bookedPlayers: number;
+  maxPlayers: number;
 }
+
+export type TeeSheetFilter =
+  | "all"
+  | "open"
+  | "partial"
+  | "full"
+  | "checked_in"
+  | "cancelled";

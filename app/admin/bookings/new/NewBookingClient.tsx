@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -22,6 +22,10 @@ import type { Profile } from "@/lib/types/database";
 export default function NewBookingClient({ profile }: { profile: Profile }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isAddMode = searchParams.get("add") === "1";
+  const remainingSpots = parseInt(searchParams.get("remaining") ?? "4", 10);
+  const maxPlayers = Math.min(4, Math.max(1, remainingSpots));
+
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     booking_date: searchParams.get("date") ?? format(new Date(), "yyyy-MM-dd"),
@@ -29,11 +33,16 @@ export default function NewBookingClient({ profile }: { profile: Profile }) {
     customer_name: "",
     customer_phone: "",
     customer_email: "",
-    players: "4",
+    players: String(Math.min(4, maxPlayers)),
     cart_preference: "unknown",
-    source: "phone",
+    source: isAddMode ? "walk_in" : "phone",
     notes: "",
   });
+
+  const playerOptions = useMemo(
+    () => Array.from({ length: maxPlayers }, (_, i) => i + 1),
+    [maxPlayers],
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +75,15 @@ export default function NewBookingClient({ profile }: { profile: Profile }) {
     <AdminShell profile={profile}>
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle className="font-heading text-2xl">New Booking</CardTitle>
+          <CardTitle className="font-heading text-2xl">
+            {isAddMode ? "Add Players to Tee Time" : "New Booking"}
+          </CardTitle>
+          {isAddMode && (
+            <p className="text-sm text-muted-foreground">
+              {form.booking_date} at {form.tee_time.slice(0, 5)} — up to {maxPlayers} spot
+              {maxPlayers === 1 ? "" : "s"} available
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,7 +138,7 @@ export default function NewBookingClient({ profile }: { profile: Profile }) {
                 <Select value={form.players} onValueChange={(v) => v && setForm({ ...form, players: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4].map((n) => (
+                    {playerOptions.map((n) => (
                       <SelectItem key={n} value={String(n)}>{n}</SelectItem>
                     ))}
                   </SelectContent>
@@ -165,7 +182,9 @@ export default function NewBookingClient({ profile }: { profile: Profile }) {
             </div>
             <div className="flex gap-3">
               <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-              <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Create Booking"}</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Saving..." : isAddMode ? "Add Booking" : "Create Booking"}
+              </Button>
             </div>
           </form>
         </CardContent>

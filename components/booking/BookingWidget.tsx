@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 export function BookingWidget() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [players, setPlayers] = useState("4");
-  const [slots, setSlots] = useState<{ time: string; label: string }[]>([]);
+  const [slots, setSlots] = useState<{ time: string; label: string; spotsRemaining?: number }[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -87,9 +87,14 @@ export function BookingWidget() {
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {slots.map((slot) => (
-                <Button key={slot.time} asChild variant="outline" size="sm">
+                <Button key={slot.time} asChild variant="outline" size="sm" className="h-auto flex-col py-2">
                   <Link href={`/book?date=${date}&time=${slot.time}&players=${players}`}>
-                    {slot.label}
+                    <span>{slot.label.split(" — ")[0]}</span>
+                    {slot.spotsRemaining !== undefined && (
+                      <span className="text-xs font-normal opacity-80">
+                        {slot.spotsRemaining} left
+                      </span>
+                    )}
                   </Link>
                 </Button>
               ))}

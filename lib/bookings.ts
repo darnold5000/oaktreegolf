@@ -1,3 +1,5 @@
+import { canFitPlayers, isActiveBooking } from "@/lib/booking-capacity";
+import { getCourseSettings } from "@/lib/data";
 import { createServiceClient } from "@/lib/supabase/server";
 import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import type { Booking, BookingSource, BookingStatus, CartPreference } from "@/lib/types/database";
@@ -20,9 +22,69 @@ export interface CreateBookingInput {
   status?: BookingStatus;
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<{ data: Booking | null; error: string | null }> {
+export async function validateBookingCapacity(params: {
+  booking_date: string;
+  tee_time: string;
+  players: number;
+  status: BookingStatus;
+  excludeBookingId?: string;
+}): Promise<{ ok: boolean; error: string | null }> {
+  if (!isActiveBooking(params.status)) {
+    return { ok: true, error: null };
+  }
+
+  const settings = await getCourseSettings();
+  const bookings = await getBookingsForDate(params.booking_date);
+  const maxPlayers = settings.max_players_per_booking;
+
+  if (params.players > maxPlayers) {
+    return { ok: false, error: `Maximum ${maxPlayers} players per booking.` };
+  }
+
+  if (
+    !canFitPlayers(
+      bookings,
+      params.tee_time,
+      maxPlayers,
+      params.players,
+      params.excludeBookingId,
+    )
+  ) {
+    const remaining = maxPlayers - bookings
+      .filter(
+        (b) =>
+          b.tee_time.slice(0, 8) === params.tee_time.slice(0, 8) &&
+          isActiveBooking(b.status) &&
+          b.id !== params.excludeBookingId,
+      )
+      .reduce((sum, b) => sum + b.players, 0);
+
+    return {
+      ok: false,
+      error: `Only ${Math.max(0, remaining)} spot(s) remaining at this tee time.`,
+    };
+  }
+
+  return { ok: true, error: null };
+}
+
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<{ data: Booking | null; error: string | null }> {
   if (!hasSupabaseConfig()) {
     return { data: null, error: "Booking system is not configured." };
+  }
+
+  const status = input.status ?? "reserved";
+  const capacity = await validateBookingCapacity({
+    booking_date: input.booking_date,
+    tee_time: input.tee_time,
+    players: input.players,
+    status,
+  });
+
+  if (!capacity.ok) {
+    return { data: null, error: capacity.error };
   }
 
   const supabase = createServiceClient();
@@ -40,15 +102,12 @@ export async function createBooking(input: CreateBookingInput): Promise<{ data: 
       source: input.source,
       notes: input.notes ?? null,
       created_by: input.created_by ?? null,
-      status: input.status ?? "reserved",
+      status,
     })
     .select()
     .single();
 
   if (error) {
-    if (error.code === "23505") {
-      return { data: null, error: "That tee time was just booked. Please choose another time." };
-    }
     return { data: null, error: error.message };
   }
 
@@ -63,6 +122,30 @@ export async function updateBooking(
     return { data: null, error: "Booking system is not configured." };
   }
 
+  const existing = await getBookingById(id);
+  if (!existing) {
+    return { data: null, error: "Booking not found." };
+  }
+
+  const merged = {
+    booking_date: updates.booking_date ?? existing.booking_date,
+    tee_time: updates.tee_time ?? existing.tee_time,
+    players: updates.players ?? existing.players,
+    status: updates.status ?? existing.status,
+  };
+
+  const capacity = await validateBookingCapacity({
+    booking_date: merged.booking_date,
+    tee_time: merged.tee_time,
+    players: merged.players,
+    status: merged.status,
+    excludeBookingId: id,
+  });
+
+  if (!capacity.ok) {
+    return { data: null, error: capacity.error };
+  }
+
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
@@ -73,9 +156,6 @@ export async function updateBooking(
     .single();
 
   if (error) {
-    if (error.code === "23505") {
-      return { data: null, error: "That tee time is already booked." };
-    }
     return { data: null, error: error.message };
   }
 

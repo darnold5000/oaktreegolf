@@ -5,38 +5,8 @@
 create extension if not exists "pgcrypto";
 
 -- ---------------------------------------------------------------------------
--- Helper functions (oak_tree_* — no overlap with Dugout Intel)
+-- Trigger helper (no table dependencies)
 -- ---------------------------------------------------------------------------
-
-create or replace function public.oak_tree_is_staff()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.oak_tree_profiles p
-    where p.id = auth.uid()
-      and p.role in ('admin', 'staff')
-  );
-$$;
-
-create or replace function public.oak_tree_is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.oak_tree_profiles p
-    where p.id = auth.uid()
-      and p.role = 'admin'
-  );
-$$;
 
 create or replace function public.oak_tree_set_updated_at()
 returns trigger
@@ -103,15 +73,13 @@ create table if not exists public.oak_tree_bookings (
   updated_at timestamptz default now()
 );
 
-create unique index if not exists oak_tree_unique_active_tee_time
-  on public.oak_tree_bookings (booking_date, tee_time)
-  where status in ('reserved', 'checked_in');
-
 create index if not exists oak_tree_bookings_date_idx
   on public.oak_tree_bookings (booking_date);
 
 create index if not exists oak_tree_bookings_status_idx
   on public.oak_tree_bookings (status);
+
+-- Capacity per tee time is enforced in the application layer (multiple bookings allowed).
 
 create table if not exists public.oak_tree_blocked_times (
   id uuid primary key default gen_random_uuid(),
@@ -141,6 +109,40 @@ create table if not exists public.oak_tree_course_status (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- ---------------------------------------------------------------------------
+-- RLS helper functions (must run AFTER oak_tree_profiles exists)
+-- ---------------------------------------------------------------------------
+
+create or replace function public.oak_tree_is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.oak_tree_profiles p
+    where p.id = auth.uid()
+      and p.role in ('admin', 'staff')
+  );
+$$;
+
+create or replace function public.oak_tree_is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.oak_tree_profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  );
+$$;
 
 -- ---------------------------------------------------------------------------
 -- Updated_at triggers

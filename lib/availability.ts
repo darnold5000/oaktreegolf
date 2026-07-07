@@ -8,12 +8,22 @@ import {
   startOfDay,
 } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import {
+  canFitPlayers,
+  getActiveBookingsForSlot,
+  getBookedPlayersForSlot,
+  getRemainingSpots,
+  getSlotCapacityStatus,
+  isActiveBooking,
+  normalizeTeeTime,
+} from "@/lib/booking-capacity";
 import type {
   BlockedTime,
   Booking,
   CourseSettings,
   DailyHours,
   AvailableSlot,
+  TeeSheetFilter,
   TeeSheetSlot,
 } from "@/lib/types/database";
 
@@ -65,10 +75,15 @@ function isSlotBlocked(time: string, blocks: BlockedTime[]): BlockedTime | undef
   });
 }
 
-function isSlotBooked(time: string, bookings: Booking[]): Booking | undefined {
-  return bookings.find(
-    (b) => b.tee_time.slice(0, 8) === time.slice(0, 8) && ["reserved", "checked_in"].includes(b.status),
-  );
+function formatAvailabilityLabel(time: string, spotsRemaining: number): string {
+  const timeLabel = formatTimeLabel(time);
+  if (spotsRemaining >= 4) {
+    return `${timeLabel} — ${spotsRemaining} spots left`;
+  }
+  if (spotsRemaining === 1) {
+    return `${timeLabel} — 1 spot left`;
+  }
+  return `${timeLabel} — ${spotsRemaining} spots left`;
 }
 
 export interface AvailabilityInput {
@@ -92,8 +107,10 @@ export function getAvailableSlots(input: AvailabilityInput): AvailableSlot[] {
     now = new Date(),
   } = input;
 
+  const maxPlayers = settings.max_players_per_booking;
+
   if (!settings.public_booking_enabled) return [];
-  if (players < 1 || players > settings.max_players_per_booking) return [];
+  if (players < 1 || players > maxPlayers) return [];
 
   const timezone = settings.timezone;
   const selectedDate = parse(date, "yyyy-MM-dd", new Date());
@@ -117,8 +134,8 @@ export function getAvailableSlots(input: AvailabilityInput): AvailableSlot[] {
 
   return slots
     .filter((time) => {
-      if (isSlotBooked(time, bookings)) return false;
       if (isSlotBlocked(time, blocks)) return false;
+      if (!canFitPlayers(bookings, time, maxPlayers, players)) return false;
 
       const slotDateTime = parse(
         `${date} ${time.slice(0, 5)}`,
@@ -131,7 +148,17 @@ export function getAvailableSlots(input: AvailabilityInput): AvailableSlot[] {
 
       return true;
     })
-    .map((time) => ({ time, label: formatTimeLabel(time) }));
+    .map((time) => {
+      const spotsRemaining = getRemainingSpots(bookings, time, maxPlayers);
+      const bookedPlayers = getBookedPlayersForSlot(bookings, time);
+      return {
+        time,
+        label: formatAvailabilityLabel(time, spotsRemaining),
+        spotsRemaining,
+        bookedPlayers,
+        maxPlayers,
+      };
+    });
 }
 
 export function getFirstAvailableSlot(slots: AvailableSlot[]): AvailableSlot | null {
@@ -148,40 +175,86 @@ export interface TeeSheetInput {
 
 export function buildTeeSheet(input: TeeSheetInput): TeeSheetSlot[] {
   const { settings, dailyHours, bookings, blocks } = input;
+  const maxPlayers = settings.max_players_per_booking;
 
   if (dailyHours?.is_closed) return [];
 
   const openTime = (dailyHours?.open_time ?? settings.first_tee_time).slice(0, 8);
   const closeTime = (dailyHours?.close_time ?? settings.last_tee_time).slice(0, 8);
-  const slots = generateTimeSlots(openTime, closeTime, settings.tee_interval_minutes);
+  const slotTimes = generateTimeSlots(openTime, closeTime, settings.tee_interval_minutes);
 
-  return slots.map((time) => {
-    const booking = isSlotBooked(time, bookings);
-    if (booking) {
-      return {
-        time,
-        label: formatTimeLabel(time),
-        type: "booking" as const,
-        booking,
-      };
-    }
-
+  return slotTimes.map((time) => {
     const block = isSlotBlocked(time, blocks);
     if (block) {
       return {
         time,
         label: formatTimeLabel(time),
         type: "blocked" as const,
+        bookings: [],
+        bookedPlayers: 0,
+        maxPlayers,
+        spotsRemaining: 0,
         block,
       };
     }
 
+    const activeBookings = getActiveBookingsForSlot(bookings, time).sort((a, b) =>
+      a.created_at.localeCompare(b.created_at),
+    );
+    const bookedPlayers = getBookedPlayersForSlot(bookings, time);
+    const spotsRemaining = getRemainingSpots(bookings, time, maxPlayers);
+    const capacityStatus = getSlotCapacityStatus(bookings, time, maxPlayers);
+
     return {
       time,
       label: formatTimeLabel(time),
-      type: "open" as const,
+      type: capacityStatus,
+      bookings: activeBookings,
+      bookedPlayers,
+      maxPlayers,
+      spotsRemaining,
     };
   });
+}
+
+export function getCancelledBookingsForSlot(bookings: Booking[], teeTime: string): Booking[] {
+  const normalized = normalizeTeeTime(teeTime);
+  return bookings.filter(
+    (b) => normalizeTeeTime(b.tee_time) === normalized && b.status === "cancelled",
+  );
+}
+
+export function slotMatchesFilter(
+  slot: TeeSheetSlot,
+  filter: TeeSheetFilter,
+  allBookings: Booking[],
+): boolean {
+  if (filter === "all") return true;
+  if (filter === "open") return slot.type === "open";
+  if (filter === "partial") return slot.type === "partial";
+  if (filter === "full") return slot.type === "full";
+  if (filter === "checked_in") {
+    return slot.bookings.some((b) => b.status === "checked_in");
+  }
+  if (filter === "cancelled") {
+    return getCancelledBookingsForSlot(allBookings, slot.time).length > 0;
+  }
+  return true;
+}
+
+export function slotMatchesSearch(slot: TeeSheetSlot, query: string, allBookings: Booking[]): boolean {
+  if (!query.trim()) return true;
+  const q = query.toLowerCase();
+  const slotBookings = [
+    ...slot.bookings,
+    ...getCancelledBookingsForSlot(allBookings, slot.time),
+  ];
+  return slotBookings.some(
+    (b) =>
+      b.customer_name.toLowerCase().includes(q) ||
+      (b.customer_phone?.toLowerCase().includes(q) ?? false) ||
+      (b.customer_email?.toLowerCase().includes(q) ?? false),
+  );
 }
 
 export function formatDateInTimezone(date: Date, timezone: string, fmt = "yyyy-MM-dd"): string {
@@ -201,7 +274,12 @@ export function getDefaultBookingDates(timezone: string, windowDays: number): st
 
 export function isSlotAvailableForBooking(
   time: string,
+  players: number,
   availableSlots: AvailableSlot[],
 ): boolean {
-  return availableSlots.some((s) => s.time.slice(0, 8) === time.slice(0, 8));
+  const normalized = normalizeTeeTime(time);
+  const slot = availableSlots.find((s) => normalizeTeeTime(s.time) === normalized);
+  return !!slot && slot.spotsRemaining >= players;
 }
+
+export { isActiveBooking };

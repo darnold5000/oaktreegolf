@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       blocks,
     });
 
-    return NextResponse.json({ date, slots, status, settings });
+    return NextResponse.json({ date, slots, status, settings, bookings });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to load tee sheet" }, { status: 500 });

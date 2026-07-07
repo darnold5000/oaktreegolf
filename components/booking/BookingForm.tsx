@@ -30,7 +30,7 @@ export function BookingForm() {
   const [date, setDate] = useState(initialDate);
   const [players, setPlayers] = useState(initialPlayers);
   const [selectedTime, setSelectedTime] = useState(initialTime);
-  const [slots, setSlots] = useState<{ time: string; label: string }[]>([]);
+  const [slots, setSlots] = useState<{ time: string; label: string; spotsRemaining?: number }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successBooking, setSuccessBooking] = useState<{

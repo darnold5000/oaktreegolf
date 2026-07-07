@@ -166,6 +166,20 @@ export default function EditBookingClient({
                 </Select>
               </div>
               <div className="space-y-2">
+                <Label>Cart/Walk</Label>
+                <Select
+                  value={form.cart_preference}
+                  onValueChange={(v) => v && setForm({ ...form, cart_preference: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                    <SelectItem value="walking">Walking</SelectItem>
+                    <SelectItem value="cart">Cart</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => v && setForm({ ...form, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -177,6 +191,8 @@ export default function EditBookingClient({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Source</Label>
                 <Select value={form.source} onValueChange={(v) => v && setForm({ ...form, source: v })}>
