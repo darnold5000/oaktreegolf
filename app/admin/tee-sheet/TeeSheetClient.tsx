@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { slotMatchesFilter, slotMatchesSearch } from "@/lib/availability";
-import type { Booking, CourseStatus, Profile, TeeSheetFilter, TeeSheetSlot } from "@/lib/types/database";
+import type { Booking, CourseSettings, CourseStatus, Profile, TeeSheetFilter, TeeSheetSlot } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 
 const FILTERS: { id: TeeSheetFilter; label: string }[] = [
@@ -36,14 +36,21 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [slots, setSlots] = useState<TeeSheetSlot[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [settings, setSettings] = useState<CourseSettings | null>(null);
   const [status, setStatus] = useState<CourseStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<TeeSheetFilter>("available");
   const [search, setSearch] = useState("");
   const [density, setDensity] = useState<TeeSheetDensity>("compact");
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     setDensity(loadDensity());
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   function handleDensityChange(next: TeeSheetDensity) {
@@ -59,6 +66,7 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
       const data = await res.json();
       setSlots(data.slots ?? []);
       setAllBookings(data.bookings ?? []);
+      setSettings(data.settings ?? null);
       setStatus(data.status ?? null);
     } catch {
       toast.error("Could not load tee sheet.");
@@ -73,10 +81,17 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
   }, [date]);
 
   const filteredSlots = useMemo(() => {
+    const filterContext =
+      settings && filter === "available"
+        ? { sheetDate: date, timezone: settings.timezone, now }
+        : undefined;
+
     return slots.filter(
-      (slot) => slotMatchesFilter(slot, filter, allBookings) && slotMatchesSearch(slot, search, allBookings),
+      (slot) =>
+        slotMatchesFilter(slot, filter, allBookings, filterContext) &&
+        slotMatchesSearch(slot, search, allBookings),
     );
-  }, [slots, filter, search, allBookings]);
+  }, [slots, filter, search, allBookings, settings, date, now]);
 
   async function handleCancel(id: string) {
     const res = await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });

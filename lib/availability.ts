@@ -297,6 +297,25 @@ export function buildTeeSheet(input: TeeSheetInput): TeeSheetSlot[] {
   });
 }
 
+export const ADMIN_AVAILABLE_PAST_GRACE_MINUTES = 7;
+
+export function isSlotWithinAdminAvailableWindow(
+  date: string,
+  time: string,
+  timezone: string,
+  now: Date = new Date(),
+): boolean {
+  const slotInstant = getSlotInstant(date, time, timezone);
+  const earliestVisible = addMinutes(now, -ADMIN_AVAILABLE_PAST_GRACE_MINUTES);
+  return !isBefore(slotInstant, earliestVisible);
+}
+
+export interface TeeSheetFilterContext {
+  sheetDate: string;
+  timezone: string;
+  now?: Date;
+}
+
 export function getCancelledBookingsForSlot(bookings: Booking[], teeTime: string): Booking[] {
   const normalized = normalizeTeeTime(teeTime);
   return bookings.filter(
@@ -308,9 +327,19 @@ export function slotMatchesFilter(
   slot: TeeSheetSlot,
   filter: TeeSheetFilter,
   allBookings: Booking[],
+  context?: TeeSheetFilterContext,
 ): boolean {
   if (filter === "all") return true;
-  if (filter === "available") return slot.type === "open" || slot.type === "partial";
+  if (filter === "available") {
+    if (slot.type !== "open" && slot.type !== "partial") return false;
+    if (!context) return true;
+
+    const { sheetDate, timezone, now = new Date() } = context;
+    const todayInCourseTz = formatInTimeZone(now, timezone, "yyyy-MM-dd");
+    if (sheetDate < todayInCourseTz) return false;
+    if (sheetDate > todayInCourseTz) return true;
+    return isSlotWithinAdminAvailableWindow(sheetDate, slot.time, timezone, now);
+  }
   if (filter === "empty") return slot.type === "open";
   if (filter === "partial") return slot.type === "partial";
   if (filter === "full") return slot.type === "full";

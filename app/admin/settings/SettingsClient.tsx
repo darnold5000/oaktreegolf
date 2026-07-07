@@ -2,13 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { CarFront, Clock, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { StatusOptionPicker } from "@/components/admin/StatusOptionPicker";
+import { AvailabilityBar } from "@/components/public/CourseStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CART_STATUS_OPTIONS,
+  COURSE_STATUS_OPTIONS,
+  RANGE_STATUS_OPTIONS,
+} from "@/lib/course-status-options";
 import type { Profile } from "@/lib/types/database";
 
 export default function SettingsClient({ profile }: { profile: Profile }) {
@@ -35,11 +43,29 @@ export default function SettingsClient({ profile }: { profile: Profile }) {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/admin/settings");
-      if (res.ok) {
-        const data = await res.json();
+      const today = format(new Date(), "yyyy-MM-dd");
+      const [settingsRes, statusRes] = await Promise.all([
+        fetch("/api/admin/settings"),
+        fetch(`/api/course-status?date=${today}`),
+      ]);
+
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
         if (data.settings) setSettings(data.settings);
       }
+
+      if (statusRes.ok) {
+        const data = await statusRes.json();
+        setStatus({
+          status_date: data.status_date ?? today,
+          course_status: data.course_status ?? "Open",
+          range_status: data.range_status ?? "Open",
+          cart_status: data.cart_status ?? "Available",
+          announcement: data.announcement ?? "",
+          first_available_time: data.first_available_time ?? "07:00:00",
+        });
+      }
+
       setLoading(false);
     }
     load();
@@ -145,7 +171,9 @@ export default function SettingsClient({ profile }: { profile: Profile }) {
                 />
                 Public booking enabled
               </label>
-              <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Settings"}</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save Settings"}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -153,9 +181,13 @@ export default function SettingsClient({ profile }: { profile: Profile }) {
         <Card>
           <CardHeader>
             <CardTitle className="font-heading text-2xl">Homepage Status</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Controls the Course, Range, and Carts pills on the public homepage. Green = open, amber =
+              limited rules, red = closed.
+            </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={saveStatus} className="space-y-4">
+            <form onSubmit={saveStatus} className="space-y-5">
               <div className="space-y-2">
                 <Label>Date</Label>
                 <Input
@@ -164,11 +196,39 @@ export default function SettingsClient({ profile }: { profile: Profile }) {
                   onChange={(e) => setStatus({ ...status, status_date: e.target.value })}
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <TextField label="Course" value={status.course_status} onChange={(v) => setStatus({ ...status, course_status: v })} />
-                <TextField label="Range" value={status.range_status} onChange={(v) => setStatus({ ...status, range_status: v })} />
-                <TextField label="Carts" value={status.cart_status} onChange={(v) => setStatus({ ...status, cart_status: v })} />
+
+              <StatusOptionPicker
+                label="Course"
+                value={status.course_status}
+                options={COURSE_STATUS_OPTIONS}
+                onChange={(course_status) => setStatus({ ...status, course_status })}
+              />
+              <StatusOptionPicker
+                label="Range"
+                value={status.range_status}
+                options={RANGE_STATUS_OPTIONS}
+                onChange={(range_status) => setStatus({ ...status, range_status })}
+              />
+              <StatusOptionPicker
+                label="Carts"
+                value={status.cart_status}
+                options={CART_STATUS_OPTIONS}
+                onChange={(cart_status) => setStatus({ ...status, cart_status })}
+              />
+
+              <div className="rounded-lg border bg-muted/20 p-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Homepage preview
+                </p>
+                <AvailabilityBar
+                  items={[
+                    { label: "Course", status: status.course_status, icon: Flag },
+                    { label: "Range", status: status.range_status, icon: Clock },
+                    { label: "Carts", status: status.cart_status, icon: CarFront },
+                  ]}
+                />
               </div>
+
               <div className="space-y-2">
                 <Label>First Available Time</Label>
                 <Input
@@ -210,23 +270,6 @@ function NumberField({
     <div className="space-y-2">
       <Label>{label}</Label>
       <Input type="number" value={value} onChange={(e) => onChange(parseInt(e.target.value, 10))} />
-    </div>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Input value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
