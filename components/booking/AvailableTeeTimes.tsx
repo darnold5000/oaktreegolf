@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { normalizeTeeTime } from "@/lib/booking-capacity";
 import type { AvailabilityEmptyReason } from "@/lib/availability";
 
 interface AvailableTeeTimesProps {
@@ -67,11 +68,13 @@ export function AvailableTeeTimes({
   loading,
   emptyReason,
 }: AvailableTeeTimesProps) {
-  if (loading) {
+  const showEmpty = !loading && slots.length === 0;
+
+  if (loading && slots.length === 0) {
     return <p className="text-sm text-muted-foreground">Loading available tee times...</p>;
   }
 
-  if (slots.length === 0) {
+  if (showEmpty) {
     const { title, detail } = emptyStateMessage(emptyReason);
     return (
       <div className="rounded-lg border border-dashed p-6 text-center">
@@ -87,23 +90,35 @@ export function AvailableTeeTimes({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-      {slots.map((slot) => (
-        <Button
-          key={slot.time}
-          type="button"
-          variant={selectedTime === slot.time ? "default" : "outline"}
-          className={cn("h-auto min-h-12 flex-col py-2 text-base", selectedTime === slot.time && "ring-2 ring-primary/30")}
-          onClick={() => onSelect(slot.time)}
-        >
-          <span>{slot.label.split(" — ")[0]}</span>
-          {slot.spotsRemaining !== undefined && (
-            <span className="text-xs font-normal opacity-80">
-              {slot.spotsRemaining === 1 ? "1 spot left" : `${slot.spotsRemaining} spots left`}
-            </span>
-          )}
-        </Button>
-      ))}
+    <div className={cn(loading && slots.length > 0 && "opacity-70")}>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+        {slots.map((slot) => {
+          const isSelected =
+            !!selectedTime && normalizeTeeTime(selectedTime) === normalizeTeeTime(slot.time);
+          return (
+            <Button
+              key={slot.time}
+              type="button"
+              variant={isSelected ? "default" : "outline"}
+              className={cn(
+                "h-auto min-h-12 flex-col py-2 text-base",
+                isSelected && "ring-2 ring-primary/30",
+              )}
+              onClick={() => onSelect(slot.time)}
+            >
+              <span>{slot.label.split(" — ")[0]}</span>
+              {slot.spotsRemaining !== undefined && (
+                <span className="text-xs font-normal opacity-80">
+                  {slot.spotsRemaining === 1 ? "1 spot left" : `${slot.spotsRemaining} spots left`}
+                </span>
+              )}
+            </Button>
+          );
+        })}
+      </div>
+      {loading && slots.length > 0 ? (
+        <p className="mt-2 text-xs text-muted-foreground">Updating times...</p>
+      ) : null}
     </div>
   );
 }

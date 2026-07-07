@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, addDays } from "date-fns";
 import { toast } from "sonner";
 import { AvailableTeeTimes } from "@/components/booking/AvailableTeeTimes";
 import { BookingSuccess } from "@/components/booking/AvailableTeeTimes";
 import type { AvailabilityEmptyReason } from "@/lib/availability";
+import { normalizeTeeTime } from "@/lib/booking-capacity";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { AvailableSlot } from "@/lib/types/database";
 
-export function BookingForm() {
+type BookingSlot = Pick<AvailableSlot, "time" | "label" | "spotsRemaining">;
+
+function isTimeValidForParty(
+  slots: BookingSlot[],
+  time: string,
+  playerCount: number,
+): boolean {
+  const slot = slots.find((s) => normalizeTeeTime(s.time) === normalizeTeeTime(time));
+  return !!slot && (slot.spotsRemaining ?? 0) >= playerCount;
+}
+
+export function BookingForm({
+  initialSlots,
+  initialEmptyReason,
+}: {
+  initialSlots?: BookingSlot[];
+  initialEmptyReason?: AvailabilityEmptyReason | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialDate = searchParams.get("date") ?? format(new Date(), "yyyy-MM-dd");
@@ -31,9 +50,11 @@ export function BookingForm() {
   const [date, setDate] = useState(initialDate);
   const [players, setPlayers] = useState(initialPlayers);
   const [selectedTime, setSelectedTime] = useState(initialTime);
-  const [slots, setSlots] = useState<{ time: string; label: string; spotsRemaining?: number }[]>([]);
-  const [emptyReason, setEmptyReason] = useState<AvailabilityEmptyReason | null>(null);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slots, setSlots] = useState<BookingSlot[]>(initialSlots ?? []);
+  const [emptyReason, setEmptyReason] = useState<AvailabilityEmptyReason | null>(
+    initialEmptyReason ?? null,
+  );
+  const [loadingSlots, setLoadingSlots] = useState(!initialSlots);
   const [submitting, setSubmitting] = useState(false);
   const [successBooking, setSuccessBooking] = useState<{
     customer_name: string;
@@ -50,23 +71,53 @@ export function BookingForm() {
     notes: "",
   });
 
-  async function loadSlots(nextDate = date, nextPlayers = players) {
-    setLoadingSlots(true);
-    try {
-      const res = await fetch(`/api/availability?date=${nextDate}&players=${nextPlayers}`);
-      const data = await res.json();
-      setSlots(data.slots ?? []);
-      setEmptyReason(data.emptyReason ?? null);
-    } catch {
-      setSlots([]);
-      toast.error("Could not load availability.");
-    } finally {
-      setLoadingSlots(false);
-    }
-  }
+  const loadSlots = useCallback(
+    async (
+      nextDate: string,
+      nextPlayers: string,
+      options?: { preserveTime?: string; silent?: boolean },
+    ) => {
+      if (!options?.silent) {
+        setLoadingSlots(true);
+      }
+      try {
+        const res = await fetch(`/api/availability?date=${nextDate}&players=${nextPlayers}`);
+        const data = await res.json();
+        const nextSlots: BookingSlot[] = data.slots ?? [];
+        setSlots(nextSlots);
+        setEmptyReason(data.emptyReason ?? null);
+
+        const timeToKeep = options?.preserveTime ?? selectedTime;
+        if (timeToKeep) {
+          const playerCount = parseInt(nextPlayers, 10);
+          if (isTimeValidForParty(nextSlots, timeToKeep, playerCount)) {
+            setSelectedTime(timeToKeep);
+          } else {
+            setSelectedTime("");
+          }
+        }
+      } catch {
+        if (!options?.silent) {
+          setSlots([]);
+          toast.error("Could not load availability.");
+        }
+      } finally {
+        setLoadingSlots(false);
+      }
+    },
+    [selectedTime],
+  );
 
   useEffect(() => {
-    loadSlots();
+    if (initialSlots) {
+      const playerCount = parseInt(initialPlayers, 10);
+      if (initialTime && !isTimeValidForParty(initialSlots, initialTime, playerCount)) {
+        setSelectedTime("");
+      }
+      loadSlots(initialDate, initialPlayers, { preserveTime: initialTime, silent: true });
+      return;
+    }
+    loadSlots(initialDate, initialPlayers, { preserveTime: initialTime });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -138,9 +189,10 @@ export function BookingForm() {
                   min={format(new Date(), "yyyy-MM-dd")}
                   max={format(addDays(new Date(), 14), "yyyy-MM-dd")}
                   onChange={(e) => {
-                    setDate(e.target.value);
+                    const nextDate = e.target.value;
+                    setDate(nextDate);
                     setSelectedTime("");
-                    loadSlots(e.target.value, players);
+                    loadSlots(nextDate, players);
                   }}
                 />
               </div>
@@ -151,8 +203,7 @@ export function BookingForm() {
                   onValueChange={(v) => {
                     if (!v) return;
                     setPlayers(v);
-                    setSelectedTime("");
-                    loadSlots(date, v);
+                    loadSlots(date, v, { preserveTime: selectedTime });
                   }}
                 >
                   <SelectTrigger>

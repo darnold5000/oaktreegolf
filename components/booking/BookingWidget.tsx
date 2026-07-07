@@ -15,18 +15,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+type WidgetSlot = { time: string; label: string; spotsRemaining?: number };
 
 export function BookingWidget() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [players, setPlayers] = useState("4");
-  const [slots, setSlots] = useState<{ time: string; label: string; spotsRemaining?: number }[]>([]);
+  const [slots, setSlots] = useState<WidgetSlot[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/availability?date=${date}&players=${players}`);
+        // List every tee time with at least 1 open spot; filter by party size in the UI.
+        const res = await fetch(`/api/availability?date=${date}&players=1`);
         const data = await res.json();
         setSlots((data.slots ?? []).slice(0, 6));
       } catch {
@@ -36,7 +40,9 @@ export function BookingWidget() {
       }
     }
     load();
-  }, [date, players]);
+  }, [date]);
+
+  const partySize = parseInt(players, 10);
 
   return (
     <Card className="border-primary/20 shadow-lg">
@@ -80,24 +86,49 @@ export function BookingWidget() {
 
         <div>
           <p className="mb-2 text-sm font-medium">Next available times</p>
-          {loading ? (
+          {loading && slots.length === 0 ? (
             <p className="text-sm text-muted-foreground">Loading availability...</p>
           ) : slots.length === 0 ? (
             <p className="text-sm text-muted-foreground">No times available. Call the pro shop.</p>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {slots.map((slot) => (
-                <Button key={slot.time} asChild variant="outline" size="sm" className="h-auto flex-col py-2">
-                  <Link href={`/book?date=${date}&time=${slot.time}&players=${players}`}>
-                    <span>{slot.label.split(" — ")[0]}</span>
-                    {slot.spotsRemaining !== undefined && (
-                      <span className="text-xs font-normal opacity-80">
-                        {slot.spotsRemaining} left
-                      </span>
-                    )}
-                  </Link>
-                </Button>
-              ))}
+            <div className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3", loading && "opacity-60")}>
+              {slots.map((slot) => {
+                const spots = slot.spotsRemaining ?? 0;
+                const fitsParty = spots >= partySize;
+                const timeLabel = slot.label.split(" — ")[0];
+                const spotsLabel = spots === 1 ? "1 spot left" : `${spots} spots left`;
+
+                if (!fitsParty) {
+                  return (
+                    <Button
+                      key={slot.time}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="h-auto flex-col py-2 opacity-70"
+                    >
+                      <span>{timeLabel}</span>
+                      <span className="text-xs font-normal">{spotsLabel}</span>
+                    </Button>
+                  );
+                }
+
+                return (
+                  <Button
+                    key={slot.time}
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-auto flex-col py-2"
+                  >
+                    <Link href={`/book?date=${date}&time=${slot.time}&players=${players}`}>
+                      <span>{timeLabel}</span>
+                      <span className="text-xs font-normal opacity-80">{spotsLabel}</span>
+                    </Link>
+                  </Button>
+                );
+              })}
             </div>
           )}
         </div>

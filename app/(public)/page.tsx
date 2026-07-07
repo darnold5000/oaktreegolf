@@ -23,7 +23,7 @@ export default async function HomePage() {
   const blocks = await getBlockedTimesForDate(today);
   const slots = getAvailableSlots({
     date: today,
-    players: 4,
+    players: 1,
     settings,
     dailyHours,
     bookings,

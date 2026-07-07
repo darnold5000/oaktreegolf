@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { TeeSheetStatusBar } from "@/components/admin/TeeSheetStatusBar";
 import { AdminTeeSheet, type TeeSheetDensity } from "@/components/admin/TeeTimeRow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,18 +205,16 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      {status && (
-        <div className="mb-4 rounded-lg border bg-card px-3 py-2 text-sm">
-          <span className="font-medium">Course:</span> {status.course_status}
-          <span className="mx-2 text-muted-foreground">·</span>
-          <span className="font-medium">Range:</span> {status.range_status}
-          <span className="mx-2 text-muted-foreground">·</span>
-          <span className="font-medium">Carts:</span> {status.cart_status}
-          {status.announcement ? (
-            <p className="mt-1 text-muted-foreground">{status.announcement}</p>
-          ) : null}
-        </div>
-      )}
+      {status && settings ? (
+        <TeeSheetStatusBar
+          profile={profile}
+          date={date}
+          status={status}
+          settings={settings}
+          onStatusChange={setStatus}
+          onSettingsChange={setSettings}
+        />
+      ) : null}
 
       {loading ? (
         <p className="text-muted-foreground">Loading tee sheet...</p>
