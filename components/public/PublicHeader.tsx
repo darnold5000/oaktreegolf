@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { LogIn, Menu, Phone, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NAV_LINKS, SITE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -33,12 +33,6 @@ export function PublicHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
-            <Link href="/admin/login">
-              <LogIn className="h-4 w-4" />
-              Login
-            </Link>
-          </Button>
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link href="/book">Book Tee Time</Link>
           </Button>
@@ -75,12 +69,6 @@ export function PublicHeader() {
           ))}
           <Button asChild className="mt-2">
             <Link href="/book">Book Tee Time</Link>
-          </Button>
-          <Button asChild variant="outline" className="mt-2">
-            <Link href="/admin/login" onClick={() => setOpen(false)}>
-              <LogIn className="h-4 w-4" />
-              Login
-            </Link>
           </Button>
         </nav>
       </div>

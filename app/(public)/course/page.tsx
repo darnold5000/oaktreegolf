@@ -18,11 +18,11 @@ export default function CoursePage() {
           fill
           priority
           quality={95}
-          className="object-cover object-center brightness-105"
+          className="object-cover object-center brightness-115 contrast-[1.03] saturate-110"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/45 via-primary/15 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-primary/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-10 lg:px-8">
           <h1 className="font-heading text-4xl font-semibold text-primary-foreground sm:text-5xl">
             The Course
