@@ -1,9 +1,58 @@
--- Oak Tree Golf Course initial schema
+-- Oak Tree Golf Course schema for the shared Dugout Intel Supabase project.
+-- Creates ONLY oak_tree_* tables, functions, triggers, and policies.
+-- Does NOT modify Dugout Intel tables, auth triggers, RLS, or storage.
 
 create extension if not exists "pgcrypto";
 
--- Profiles
-create table profiles (
+-- ---------------------------------------------------------------------------
+-- Helper functions (oak_tree_* — no overlap with Dugout Intel)
+-- ---------------------------------------------------------------------------
+
+create or replace function public.oak_tree_is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.oak_tree_profiles p
+    where p.id = auth.uid()
+      and p.role in ('admin', 'staff')
+  );
+$$;
+
+create or replace function public.oak_tree_is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.oak_tree_profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  );
+$$;
+
+create or replace function public.oak_tree_set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Tables
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.oak_tree_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   role text not null default 'staff' check (role in ('admin', 'staff')),
@@ -11,8 +60,7 @@ create table profiles (
   updated_at timestamptz default now()
 );
 
--- Course settings (single row)
-create table course_settings (
+create table if not exists public.oak_tree_course_settings (
   id uuid primary key default gen_random_uuid(),
   course_name text not null default 'Oak Tree Golf Course',
   tee_interval_minutes int not null default 10,
@@ -27,8 +75,7 @@ create table course_settings (
   updated_at timestamptz default now()
 );
 
--- Daily hours by day of week
-create table daily_hours (
+create table if not exists public.oak_tree_daily_hours (
   id uuid primary key default gen_random_uuid(),
   day_of_week int not null check (day_of_week between 0 and 6),
   open_time time,
@@ -39,8 +86,7 @@ create table daily_hours (
   unique (day_of_week)
 );
 
--- Bookings
-create table bookings (
+create table if not exists public.oak_tree_bookings (
   id uuid primary key default gen_random_uuid(),
   booking_date date not null,
   tee_time time not null,
@@ -57,15 +103,17 @@ create table bookings (
   updated_at timestamptz default now()
 );
 
-create unique index unique_active_tee_time
-on bookings (booking_date, tee_time)
-where status in ('reserved', 'checked_in');
+create unique index if not exists oak_tree_unique_active_tee_time
+  on public.oak_tree_bookings (booking_date, tee_time)
+  where status in ('reserved', 'checked_in');
 
-create index bookings_date_idx on bookings (booking_date);
-create index bookings_status_idx on bookings (status);
+create index if not exists oak_tree_bookings_date_idx
+  on public.oak_tree_bookings (booking_date);
 
--- Blocked times
-create table blocked_times (
+create index if not exists oak_tree_bookings_status_idx
+  on public.oak_tree_bookings (status);
+
+create table if not exists public.oak_tree_blocked_times (
   id uuid primary key default gen_random_uuid(),
   block_date date not null,
   start_time time not null,
@@ -78,10 +126,10 @@ create table blocked_times (
   updated_at timestamptz default now()
 );
 
-create index blocked_times_date_idx on blocked_times (block_date);
+create index if not exists oak_tree_blocked_times_date_idx
+  on public.oak_tree_blocked_times (block_date);
 
--- Course status (daily)
-create table course_status (
+create table if not exists public.oak_tree_course_status (
   id uuid primary key default gen_random_uuid(),
   status_date date not null unique,
   course_status text default 'Open',
@@ -94,102 +142,133 @@ create table course_status (
   updated_at timestamptz default now()
 );
 
--- Auto-create profile on signup
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, full_name, role)
-  values (new.id, new.raw_user_meta_data->>'full_name', coalesce(new.raw_user_meta_data->>'role', 'staff'));
-  return new;
-end;
-$$ language plpgsql security definer;
+-- ---------------------------------------------------------------------------
+-- Updated_at triggers
+-- ---------------------------------------------------------------------------
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+drop trigger if exists oak_tree_profiles_updated_at on public.oak_tree_profiles;
+create trigger oak_tree_profiles_updated_at
+  before update on public.oak_tree_profiles
+  for each row execute procedure public.oak_tree_set_updated_at();
 
--- Updated_at trigger
-create or replace function public.set_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
+drop trigger if exists oak_tree_course_settings_updated_at on public.oak_tree_course_settings;
+create trigger oak_tree_course_settings_updated_at
+  before update on public.oak_tree_course_settings
+  for each row execute procedure public.oak_tree_set_updated_at();
 
-create trigger profiles_updated_at before update on profiles for each row execute procedure set_updated_at();
-create trigger course_settings_updated_at before update on course_settings for each row execute procedure set_updated_at();
-create trigger daily_hours_updated_at before update on daily_hours for each row execute procedure set_updated_at();
-create trigger bookings_updated_at before update on bookings for each row execute procedure set_updated_at();
-create trigger blocked_times_updated_at before update on blocked_times for each row execute procedure set_updated_at();
-create trigger course_status_updated_at before update on course_status for each row execute procedure set_updated_at();
+drop trigger if exists oak_tree_daily_hours_updated_at on public.oak_tree_daily_hours;
+create trigger oak_tree_daily_hours_updated_at
+  before update on public.oak_tree_daily_hours
+  for each row execute procedure public.oak_tree_set_updated_at();
 
--- RLS
-alter table profiles enable row level security;
-alter table course_settings enable row level security;
-alter table daily_hours enable row level security;
-alter table bookings enable row level security;
-alter table blocked_times enable row level security;
-alter table course_status enable row level security;
+drop trigger if exists oak_tree_bookings_updated_at on public.oak_tree_bookings;
+create trigger oak_tree_bookings_updated_at
+  before update on public.oak_tree_bookings
+  for each row execute procedure public.oak_tree_set_updated_at();
 
--- Profiles policies
-create policy "Users can read own profile"
-  on profiles for select
+drop trigger if exists oak_tree_blocked_times_updated_at on public.oak_tree_blocked_times;
+create trigger oak_tree_blocked_times_updated_at
+  before update on public.oak_tree_blocked_times
+  for each row execute procedure public.oak_tree_set_updated_at();
+
+drop trigger if exists oak_tree_course_status_updated_at on public.oak_tree_course_status;
+create trigger oak_tree_course_status_updated_at
+  before update on public.oak_tree_course_status
+  for each row execute procedure public.oak_tree_set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security
+-- ---------------------------------------------------------------------------
+
+alter table public.oak_tree_profiles enable row level security;
+alter table public.oak_tree_course_settings enable row level security;
+alter table public.oak_tree_daily_hours enable row level security;
+alter table public.oak_tree_bookings enable row level security;
+alter table public.oak_tree_blocked_times enable row level security;
+alter table public.oak_tree_course_status enable row level security;
+
+-- oak_tree_profiles
+drop policy if exists "oak_tree_users_read_own_profile" on public.oak_tree_profiles;
+create policy "oak_tree_users_read_own_profile"
+  on public.oak_tree_profiles for select
   using (auth.uid() = id);
 
-create policy "Admins can read all profiles"
-  on profiles for select
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+drop policy if exists "oak_tree_admins_read_all_profiles" on public.oak_tree_profiles;
+create policy "oak_tree_admins_read_all_profiles"
+  on public.oak_tree_profiles for select
+  using (public.oak_tree_is_admin());
 
-create policy "Admins can update profiles"
-  on profiles for update
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+drop policy if exists "oak_tree_admins_update_profiles" on public.oak_tree_profiles;
+create policy "oak_tree_admins_update_profiles"
+  on public.oak_tree_profiles for update
+  using (public.oak_tree_is_admin());
 
--- Course settings policies
-create policy "Public can read safe course settings"
-  on course_settings for select
+drop policy if exists "oak_tree_admins_insert_profiles" on public.oak_tree_profiles;
+create policy "oak_tree_admins_insert_profiles"
+  on public.oak_tree_profiles for insert
+  with check (public.oak_tree_is_admin());
+
+-- oak_tree_course_settings (public read; admin write)
+drop policy if exists "oak_tree_public_read_course_settings" on public.oak_tree_course_settings;
+create policy "oak_tree_public_read_course_settings"
+  on public.oak_tree_course_settings for select
   using (true);
 
-create policy "Admins can update course settings"
-  on course_settings for update
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+drop policy if exists "oak_tree_admin_update_course_settings" on public.oak_tree_course_settings;
+create policy "oak_tree_admin_update_course_settings"
+  on public.oak_tree_course_settings for update
+  using (public.oak_tree_is_admin());
 
--- Daily hours policies
-create policy "Public can read daily hours"
-  on daily_hours for select
+drop policy if exists "oak_tree_admin_insert_course_settings" on public.oak_tree_course_settings;
+create policy "oak_tree_admin_insert_course_settings"
+  on public.oak_tree_course_settings for insert
+  with check (public.oak_tree_is_admin());
+
+-- oak_tree_daily_hours (public read; admin manage)
+drop policy if exists "oak_tree_public_read_daily_hours" on public.oak_tree_daily_hours;
+create policy "oak_tree_public_read_daily_hours"
+  on public.oak_tree_daily_hours for select
   using (true);
 
-create policy "Admins can manage daily hours"
-  on daily_hours for all
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+drop policy if exists "oak_tree_admin_manage_daily_hours" on public.oak_tree_daily_hours;
+create policy "oak_tree_admin_manage_daily_hours"
+  on public.oak_tree_daily_hours for all
+  using (public.oak_tree_is_admin());
 
--- Bookings policies
-create policy "Staff can read bookings"
-  on bookings for select
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+-- oak_tree_bookings (staff manage; public inserts via service role only)
+drop policy if exists "oak_tree_staff_read_bookings" on public.oak_tree_bookings;
+create policy "oak_tree_staff_read_bookings"
+  on public.oak_tree_bookings for select
+  using (public.oak_tree_is_staff());
 
-create policy "Staff can insert bookings"
-  on bookings for insert
-  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+drop policy if exists "oak_tree_staff_insert_bookings" on public.oak_tree_bookings;
+create policy "oak_tree_staff_insert_bookings"
+  on public.oak_tree_bookings for insert
+  with check (public.oak_tree_is_staff());
 
-create policy "Staff can update bookings"
-  on bookings for update
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+drop policy if exists "oak_tree_staff_update_bookings" on public.oak_tree_bookings;
+create policy "oak_tree_staff_update_bookings"
+  on public.oak_tree_bookings for update
+  using (public.oak_tree_is_staff());
 
--- Blocked times policies
-create policy "Staff can read blocked times"
-  on blocked_times for select
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+-- oak_tree_blocked_times
+drop policy if exists "oak_tree_staff_read_blocked_times" on public.oak_tree_blocked_times;
+create policy "oak_tree_staff_read_blocked_times"
+  on public.oak_tree_blocked_times for select
+  using (public.oak_tree_is_staff());
 
-create policy "Staff can manage blocked times"
-  on blocked_times for all
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+drop policy if exists "oak_tree_staff_manage_blocked_times" on public.oak_tree_blocked_times;
+create policy "oak_tree_staff_manage_blocked_times"
+  on public.oak_tree_blocked_times for all
+  using (public.oak_tree_is_staff());
 
--- Course status policies
-create policy "Public can read course status"
-  on course_status for select
+-- oak_tree_course_status
+drop policy if exists "oak_tree_public_read_course_status" on public.oak_tree_course_status;
+create policy "oak_tree_public_read_course_status"
+  on public.oak_tree_course_status for select
   using (true);
 
-create policy "Staff can manage course status"
-  on course_status for all
-  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('admin', 'staff')));
+drop policy if exists "oak_tree_staff_manage_course_status" on public.oak_tree_course_status;
+create policy "oak_tree_staff_manage_course_status"
+  on public.oak_tree_course_status for all
+  using (public.oak_tree_is_staff());

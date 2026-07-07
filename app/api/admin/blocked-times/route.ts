@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import { isNextResponse, requireStaffApi } from "@/lib/auth";
 
 const schema = z.object({
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
   const date = searchParams.get("date");
 
   const supabase = createServiceClient();
-  let query = supabase.from("blocked_times").select("*").order("start_time");
+  let query = supabase.from(OAK_TREE_TABLES.blockedTimes).select("*").order("start_time");
 
   if (date) {
     query = query.eq("block_date", date);
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
   const { data, error } = await supabase
-    .from("blocked_times")
+    .from(OAK_TREE_TABLES.blockedTimes)
     .insert({ ...parsed.data, created_by: auth.id })
     .select()
     .single();

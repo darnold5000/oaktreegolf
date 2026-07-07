@@ -1,6 +1,6 @@
--- Seed data for Oak Tree Golf Course
+-- Oak Tree seed data (safe to run on shared Dugout Intel Supabase project)
 
-insert into course_settings (
+insert into public.oak_tree_course_settings (
   course_name,
   tee_interval_minutes,
   max_players_per_booking,
@@ -10,7 +10,8 @@ insert into course_settings (
   timezone,
   first_tee_time,
   last_tee_time
-) values (
+)
+select
   'Oak Tree Golf Course',
   10,
   4,
@@ -20,31 +21,38 @@ insert into course_settings (
   'America/Indiana/Indianapolis',
   '07:00:00',
   '18:00:00'
-);
+where not exists (select 1 from public.oak_tree_course_settings);
 
 -- Daily hours: 0=Sunday through 6=Saturday
-insert into daily_hours (day_of_week, open_time, close_time, is_closed) values
-  (0, '07:00:00', '18:00:00', false),
-  (1, '07:00:00', '18:00:00', false),
-  (2, '07:00:00', '18:00:00', false),
-  (3, '07:00:00', '18:00:00', false),
-  (4, '07:00:00', '18:00:00', false),
-  (5, '07:00:00', '18:00:00', false),
-  (6, '07:00:00', '18:00:00', false);
+insert into public.oak_tree_daily_hours (day_of_week, open_time, close_time, is_closed)
+select v.day_of_week, v.open_time, v.close_time, v.is_closed
+from (
+  values
+    (0, '07:00:00'::time, '18:00:00'::time, false),
+    (1, '07:00:00'::time, '18:00:00'::time, false),
+    (2, '07:00:00'::time, '18:00:00'::time, false),
+    (3, '07:00:00'::time, '18:00:00'::time, false),
+    (4, '07:00:00'::time, '18:00:00'::time, false),
+    (5, '07:00:00'::time, '18:00:00'::time, false),
+    (6, '07:00:00'::time, '18:00:00'::time, false)
+) as v(day_of_week, open_time, close_time, is_closed)
+on conflict (day_of_week) do nothing;
 
--- Today's course status
-insert into course_status (
+insert into public.oak_tree_course_status (
   status_date,
   course_status,
   range_status,
   cart_status,
   announcement,
   first_available_time
-) values (
+)
+select
   current_date,
   'Open',
   'Open',
   'Available',
   null,
   '07:00:00'
-) on conflict (status_date) do nothing;
+where not exists (
+  select 1 from public.oak_tree_course_status where status_date = current_date
+);

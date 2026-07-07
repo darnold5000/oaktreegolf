@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import { isNextResponse, requireAdminApi } from "@/lib/auth";
 
 const settingsSchema = z.object({
@@ -18,7 +19,7 @@ export async function GET() {
   if (isNextResponse(auth)) return auth;
 
   const supabase = createServiceClient();
-  const { data, error } = await supabase.from("course_settings").select("*").limit(1).single();
+  const { data, error } = await supabase.from(OAK_TREE_TABLES.courseSettings).select("*").limit(1).single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -39,14 +40,14 @@ export async function PATCH(request: Request) {
   }
 
   const supabase = createServiceClient();
-  const { data: existing } = await supabase.from("course_settings").select("id").limit(1).single();
+  const { data: existing } = await supabase.from(OAK_TREE_TABLES.courseSettings).select("id").limit(1).single();
 
   if (!existing) {
     return NextResponse.json({ error: "Settings not found" }, { status: 404 });
   }
 
   const { data, error } = await supabase
-    .from("course_settings")
+    .from(OAK_TREE_TABLES.courseSettings)
     .update(parsed.data)
     .eq("id", existing.id)
     .select()

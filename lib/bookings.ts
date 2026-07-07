@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import type { Booking, BookingSource, BookingStatus, CartPreference } from "@/lib/types/database";
 
 function hasSupabaseConfig(): boolean {
@@ -27,7 +28,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{ data: 
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
-    .from("bookings")
+    .from(OAK_TREE_TABLES.bookings)
     .insert({
       booking_date: input.booking_date,
       tee_time: input.tee_time,
@@ -65,7 +66,7 @@ export async function updateBooking(
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
-    .from("bookings")
+    .from(OAK_TREE_TABLES.bookings)
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select()
@@ -85,7 +86,7 @@ export async function getBookingById(id: string): Promise<Booking | null> {
   if (!hasSupabaseConfig()) return null;
 
   const supabase = createServiceClient();
-  const { data } = await supabase.from("bookings").select("*").eq("id", id).single();
+  const { data } = await supabase.from(OAK_TREE_TABLES.bookings).select("*").eq("id", id).single();
   return (data as Booking) ?? null;
 }
 
@@ -94,7 +95,7 @@ export async function getBookingsForDate(date: string): Promise<Booking[]> {
 
   const supabase = createServiceClient();
   const { data } = await supabase
-    .from("bookings")
+    .from(OAK_TREE_TABLES.bookings)
     .select("*")
     .eq("booking_date", date)
     .order("tee_time", { ascending: true });

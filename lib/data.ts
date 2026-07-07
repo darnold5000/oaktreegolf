@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import type { BlockedTime, CourseSettings, CourseStatus, DailyHours } from "@/lib/types/database";
 
 const DEFAULT_SETTINGS: CourseSettings = {
@@ -49,7 +50,7 @@ export async function getCourseSettings(): Promise<CourseSettings> {
 
   try {
     const supabase = createServiceClient();
-    const { data } = await supabase.from("course_settings").select("*").limit(1).single();
+    const { data } = await supabase.from(OAK_TREE_TABLES.courseSettings).select("*").limit(1).single();
     return (data as CourseSettings) ?? DEFAULT_SETTINGS;
   } catch {
     return DEFAULT_SETTINGS;
@@ -64,7 +65,7 @@ export async function getDailyHours(dayOfWeek: number): Promise<DailyHours> {
   try {
     const supabase = createServiceClient();
     const { data } = await supabase
-      .from("daily_hours")
+      .from(OAK_TREE_TABLES.dailyHours)
       .select("*")
       .eq("day_of_week", dayOfWeek)
       .single();
@@ -84,7 +85,7 @@ export async function getCourseStatus(date?: string): Promise<CourseStatus> {
   try {
     const supabase = createServiceClient();
     const { data } = await supabase
-      .from("course_status")
+      .from(OAK_TREE_TABLES.courseStatus)
       .select("*")
       .eq("status_date", statusDate)
       .single();
@@ -92,7 +93,7 @@ export async function getCourseStatus(date?: string): Promise<CourseStatus> {
     if (data) return data as CourseStatus;
 
     const { data: latest } = await supabase
-      .from("course_status")
+      .from(OAK_TREE_TABLES.courseStatus)
       .select("*")
       .order("status_date", { ascending: false })
       .limit(1)
@@ -110,7 +111,7 @@ export async function getBlockedTimesForDate(date: string): Promise<BlockedTime[
   try {
     const supabase = createServiceClient();
     const { data } = await supabase
-      .from("blocked_times")
+      .from(OAK_TREE_TABLES.blockedTimes)
       .select("*")
       .eq("block_date", date)
       .order("start_time", { ascending: true });
@@ -127,7 +128,7 @@ export async function getAllDailyHours(): Promise<DailyHours[]> {
 
   try {
     const supabase = createServiceClient();
-    const { data } = await supabase.from("daily_hours").select("*").order("day_of_week");
+    const { data } = await supabase.from(OAK_TREE_TABLES.dailyHours).select("*").order("day_of_week");
     return (data as DailyHours[]) ?? [];
   } catch {
     return [];

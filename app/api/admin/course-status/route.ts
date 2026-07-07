@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import { isNextResponse, requireStaffApi } from "@/lib/auth";
 
 const schema = z.object({
@@ -25,7 +26,7 @@ export async function PATCH(request: Request) {
 
   const supabase = createServiceClient();
   const { data, error } = await supabase
-    .from("course_status")
+    .from(OAK_TREE_TABLES.courseStatus)
     .upsert(
       {
         ...parsed.data,

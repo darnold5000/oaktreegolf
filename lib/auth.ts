@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import type { Profile, UserRole } from "@/lib/types/database";
 
 export async function getCurrentUser() {
@@ -19,7 +20,11 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 
   if (!user) return null;
 
-  const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data } = await supabase
+    .from(OAK_TREE_TABLES.profiles)
+    .select("*")
+    .eq("id", user.id)
+    .single();
   return (data as Profile) ?? null;
 }
 

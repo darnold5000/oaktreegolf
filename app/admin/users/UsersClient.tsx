@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Profile } from "@/lib/types/database";
 import { createClient } from "@/lib/supabase/client";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 
 export default function UsersClient({ profile }: { profile: Profile }) {
   const [users, setUsers] = useState<Profile[]>([]);
@@ -14,7 +15,10 @@ export default function UsersClient({ profile }: { profile: Profile }) {
   useEffect(() => {
     async function load() {
       const supabase = createClient();
-      const { data, error } = await supabase.from("profiles").select("*").order("created_at");
+      const { data, error } = await supabase
+        .from(OAK_TREE_TABLES.profiles)
+        .select("*")
+        .order("created_at");
       if (error) {
         toast.error("Could not load users.");
         return;
@@ -32,7 +36,7 @@ export default function UsersClient({ profile }: { profile: Profile }) {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Invite staff through Supabase Auth, then set their role here or in user metadata during signup.
+            Oak Tree staff are managed in <code className="text-xs">oak_tree_profiles</code> (separate from Dugout Intel users). Invite via Supabase Auth, then add a profile row with the correct role.
           </p>
           {users.map((user) => (
             <div key={user.id} className="flex items-center justify-between rounded-lg border p-4">

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { OAK_TREE_TABLES } from "@/lib/supabase/tables";
 import { isNextResponse, requireStaffApi } from "@/lib/auth";
 
 export async function DELETE(
@@ -11,7 +12,7 @@ export async function DELETE(
 
   const { id } = await params;
   const supabase = createServiceClient();
-  const { error } = await supabase.from("blocked_times").delete().eq("id", id);
+  const { error } = await supabase.from(OAK_TREE_TABLES.blockedTimes).delete().eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
