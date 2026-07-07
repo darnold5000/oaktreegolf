@@ -44,8 +44,27 @@ export function PublicFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-primary-foreground/10 py-4 text-center text-xs text-primary-foreground/60">
-        © {new Date().getFullYear()} {SITE.name}. All rights reserved.
+      <div className="border-t border-primary-foreground/10 px-4 py-4">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center text-xs text-primary-foreground/60 sm:flex-row sm:text-left">
+          <p>© {new Date().getFullYear()} {SITE.name}. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-end">
+            <Link href="/admin/login" className="hover:text-primary-foreground">
+              Staff Login
+            </Link>
+            <span aria-hidden="true">·</span>
+            <p>
+              Site built and hosted by{" "}
+              <a
+                href="https://hiresignalworks.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-primary-foreground"
+              >
+                Signal Works
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   );
