@@ -93,10 +93,17 @@ export default async function HomePage() {
               <Link href="/gallery">View Gallery</Link>
             </Button>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             {GALLERY_IMAGES.map((image) => (
-              <div key={image.src} className="relative aspect-[4/3] overflow-hidden rounded-xl">
-                <Image src={image.src} alt={image.alt} fill className="object-cover" sizes="(max-width:768px) 100vw, 25vw" />
+              <div key={image.src} className="relative aspect-[4/3] min-h-[220px] overflow-hidden rounded-xl sm:min-h-[260px]">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  quality={90}
+                  className="object-cover brightness-105"
+                  sizes="(max-width:768px) 100vw, 50vw"
+                />
               </div>
             ))}
           </div>

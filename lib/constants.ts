@@ -17,23 +17,23 @@ export const SITE = {
 } as const;
 
 export const HERO_IMAGE =
-  "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_1600,h_900,al_c,q_85/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg";
+  "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_2560,h_1440,al_c,q_90/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg";
 
 export const GALLERY_IMAGES = [
   {
-    src: "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_800,h_600,al_c,q_85/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg",
+    src: "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_1600,h_1200,al_c,q_90/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg",
     alt: "Oak Tree Golf Course fairway",
   },
   {
-    src: "https://static.wixstatic.com/media/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_800,h_600,al_c,q_85/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg",
+    src: "https://static.wixstatic.com/media/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_1600,h_1200,al_c,q_90/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg",
     alt: "Oak Tree Golf Course greens",
   },
   {
-    src: "https://static.wixstatic.com/media/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png/v1/fill/w_800,h_400,al_c,q_90/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png",
+    src: "https://static.wixstatic.com/media/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png/v1/fill/w_1600,h_800,al_c,q_90/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png",
     alt: "Oak Tree Golf Course aerial view",
   },
   {
-    src: "https://static.wixstatic.com/media/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg/v1/crop/x_0,y_0,w_2423,h_3053/fill/w_570,h_718,al_c,q_85/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg",
+    src: "https://static.wixstatic.com/media/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg/v1/crop/x_0,y_0,w_2423,h_3053/fill/w_1200,h_1510,al_c,q_90/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg",
     alt: "Oak Tree Golf Course scorecard",
   },
 ] as const;
