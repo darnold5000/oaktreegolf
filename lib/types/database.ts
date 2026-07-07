@@ -100,7 +100,8 @@ export interface AvailableSlot {
 
 export type TeeSheetFilter =
   | "all"
-  | "open"
+  | "available"
+  | "empty"
   | "partial"
   | "full"
   | "checked_in"

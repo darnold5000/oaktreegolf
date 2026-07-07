@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { AdminTeeSheet } from "@/components/admin/TeeTimeRow";
+import { AdminTeeSheet, type TeeSheetDensity } from "@/components/admin/TeeTimeRow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,22 @@ import type { Booking, CourseStatus, Profile, TeeSheetFilter, TeeSheetSlot } fro
 import { cn } from "@/lib/utils";
 
 const FILTERS: { id: TeeSheetFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "open", label: "Open" },
+  { id: "available", label: "Available" },
+  { id: "empty", label: "Empty" },
   { id: "partial", label: "Partial" },
   { id: "full", label: "Full" },
   { id: "checked_in", label: "Checked In" },
   { id: "cancelled", label: "Cancelled" },
+  { id: "all", label: "All" },
 ];
+
+const DENSITY_STORAGE_KEY = "oak-tree-tee-sheet-density";
+
+function loadDensity(): TeeSheetDensity {
+  if (typeof window === "undefined") return "compact";
+  const stored = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+  return stored === "comfortable" ? "comfortable" : "compact";
+}
 
 export default function TeeSheetPage({ profile }: { profile: Profile }) {
   const router = useRouter();
@@ -29,8 +38,18 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [status, setStatus] = useState<CourseStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<TeeSheetFilter>("all");
+  const [filter, setFilter] = useState<TeeSheetFilter>("available");
   const [search, setSearch] = useState("");
+  const [density, setDensity] = useState<TeeSheetDensity>("compact");
+
+  useEffect(() => {
+    setDensity(loadDensity());
+  }, []);
+
+  function handleDensityChange(next: TeeSheetDensity) {
+    setDensity(next);
+    window.localStorage.setItem(DENSITY_STORAGE_KEY, next);
+  }
 
   async function loadSheet(nextDate = date) {
     setLoading(true);
@@ -131,6 +150,29 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
               className="h-9"
             />
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">View</Label>
+            <div className="flex rounded-md border p-0.5">
+              <Button
+                type="button"
+                size="sm"
+                variant={density === "compact" ? "default" : "ghost"}
+                className="h-8 rounded-sm px-3"
+                onClick={() => handleDensityChange("compact")}
+              >
+                Compact
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={density === "comfortable" ? "default" : "ghost"}
+                className="h-8 rounded-sm px-3"
+                onClick={() => handleDensityChange("comfortable")}
+              >
+                Comfortable
+              </Button>
+            </div>
+          </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
@@ -169,6 +211,7 @@ export default function TeeSheetPage({ profile }: { profile: Profile }) {
           slots={filteredSlots}
           allBookings={allBookings}
           showCancelled={filter === "cancelled" || filter === "all"}
+          density={density}
           onBook={(time) => goNewBooking(time)}
           onAddPlayers={(time, spots) => goNewBooking(time, true, spots)}
           onCancel={handleCancel}

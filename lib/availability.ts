@@ -310,7 +310,8 @@ export function slotMatchesFilter(
   allBookings: Booking[],
 ): boolean {
   if (filter === "all") return true;
-  if (filter === "open") return slot.type === "open";
+  if (filter === "available") return slot.type === "open" || slot.type === "partial";
+  if (filter === "empty") return slot.type === "open";
   if (filter === "partial") return slot.type === "partial";
   if (filter === "full") return slot.type === "full";
   if (filter === "checked_in") {
