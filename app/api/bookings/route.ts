@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
   getAvailableSlots,
-  getDayOfWeek,
+  getDayOfWeekInTimezone,
   isSlotAvailableForBooking,
 } from "@/lib/availability";
 import { createBooking, getBookingsForDate } from "@/lib/bookings";
@@ -43,7 +43,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const dailyHours = await getDailyHours(getDayOfWeek(data.booking_date));
+    const dailyHours = await getDailyHours(
+      getDayOfWeekInTimezone(data.booking_date, settings.timezone),
+    );
     const bookings = await getBookingsForDate(data.booking_date);
     const blocks = await getBlockedTimesForDate(data.booking_date);
 

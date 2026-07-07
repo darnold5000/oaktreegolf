@@ -19,7 +19,7 @@ export default function SettingsClient({ profile }: { profile: Profile }) {
     tee_interval_minutes: 10,
     max_players_per_booking: 4,
     booking_window_days: 14,
-    minimum_booking_notice_minutes: 60,
+    minimum_booking_notice_minutes: 15,
     public_booking_enabled: true,
     first_tee_time: "07:00:00",
     last_tee_time: "18:00:00",

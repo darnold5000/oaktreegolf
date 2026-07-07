@@ -16,7 +16,7 @@ select
   10,
   4,
   14,
-  60,
+  15,
   true,
   'America/Indiana/Indianapolis',
   '07:00:00',

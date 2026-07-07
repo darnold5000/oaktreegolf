@@ -2,12 +2,11 @@ import {
   addDays,
   addMinutes,
   format,
-  isAfter,
+  getDay,
   isBefore,
   parse,
-  startOfDay,
 } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import {
   canFitPlayers,
   getActiveBookingsForSlot,
@@ -75,15 +74,108 @@ function isSlotBlocked(time: string, blocks: BlockedTime[]): BlockedTime | undef
   });
 }
 
+export type AvailabilityEmptyReason =
+  | "booking_disabled"
+  | "course_closed"
+  | "past_date"
+  | "outside_window"
+  | "too_late_today"
+  | "fully_booked"
+  | "no_times";
+
+export function getSlotInstant(date: string, time: string, timezone: string): Date {
+  return fromZonedTime(`${date} ${time.slice(0, 5)}:00`, timezone);
+}
+
+export function isSlotInBookableFuture(
+  date: string,
+  time: string,
+  timezone: string,
+  now: Date,
+  minimumNoticeMinutes: number,
+  isToday: boolean,
+): boolean {
+  if (!isToday) return true;
+  const slotInstant = getSlotInstant(date, time, timezone);
+  const earliestBookable = addMinutes(now, minimumNoticeMinutes);
+  return !isBefore(slotInstant, earliestBookable);
+}
+
+export function getDayOfWeekInTimezone(dateStr: string, timezone: string): number {
+  return getDay(fromZonedTime(`${dateStr} 12:00:00`, timezone));
+}
+
 function formatAvailabilityLabel(time: string, spotsRemaining: number): string {
   const timeLabel = formatTimeLabel(time);
-  if (spotsRemaining >= 4) {
-    return `${timeLabel} — ${spotsRemaining} spots left`;
-  }
   if (spotsRemaining === 1) {
     return `${timeLabel} — 1 spot left`;
   }
   return `${timeLabel} — ${spotsRemaining} spots left`;
+}
+
+function getScheduleSlots(
+  settings: CourseSettings,
+  dailyHours: DailyHours | null,
+): string[] {
+  if (dailyHours?.is_closed) return [];
+  if (!dailyHours?.open_time && !settings.first_tee_time) return [];
+
+  const openTime = (dailyHours?.open_time ?? settings.first_tee_time).slice(0, 8);
+  const closeTime = (dailyHours?.close_time ?? settings.last_tee_time).slice(0, 8);
+  return generateTimeSlots(openTime, closeTime, settings.tee_interval_minutes);
+}
+
+function getDateContext(date: string, settings: CourseSettings, now: Date) {
+  const timezone = settings.timezone;
+  const todayInCourseTz = formatInTimeZone(now, timezone, "yyyy-MM-dd");
+  const maxDate = formatInTimeZone(
+    addDays(now, settings.booking_window_days),
+    timezone,
+    "yyyy-MM-dd",
+  );
+
+  return {
+    timezone,
+    todayInCourseTz,
+    isToday: date === todayInCourseTz,
+    isPastDate: date < todayInCourseTz,
+    isOutsideWindow: date > maxDate,
+  };
+}
+
+export function explainAvailabilityEmpty(input: AvailabilityInput): AvailabilityEmptyReason {
+  const { date, players, settings, dailyHours, bookings, blocks, now = new Date() } = input;
+  const maxPlayers = settings.max_players_per_booking;
+
+  if (!settings.public_booking_enabled) return "booking_disabled";
+  if (players < 1 || players > maxPlayers) return "no_times";
+
+  const { timezone, isToday, isPastDate, isOutsideWindow } = getDateContext(date, settings, now);
+  if (isPastDate) return "past_date";
+  if (isOutsideWindow) return "outside_window";
+  if (dailyHours?.is_closed) return "course_closed";
+
+  const slots = getScheduleSlots(settings, dailyHours);
+  if (slots.length === 0) return "course_closed";
+
+  const openByTime = slots.filter((time) =>
+    isSlotInBookableFuture(
+      date,
+      time,
+      timezone,
+      now,
+      settings.minimum_booking_notice_minutes,
+      isToday,
+    ),
+  );
+  if (openByTime.length === 0) return "too_late_today";
+
+  const openByCapacity = openByTime.filter(
+    (time) => !isSlotBlocked(time, blocks) && canFitPlayers(bookings, time, maxPlayers, players),
+  );
+  if (openByCapacity.length === 0) return "fully_booked";
+
+  return "no_times";
 }
 
 export interface AvailabilityInput {
@@ -112,40 +204,28 @@ export function getAvailableSlots(input: AvailabilityInput): AvailableSlot[] {
   if (!settings.public_booking_enabled) return [];
   if (players < 1 || players > maxPlayers) return [];
 
-  const timezone = settings.timezone;
-  const selectedDate = parse(date, "yyyy-MM-dd", new Date());
-  const zonedNow = toZonedTime(now, timezone);
-  const zonedSelected = toZonedTime(selectedDate, timezone);
-
-  const daysDiff = Math.floor(
-    (startOfDay(zonedSelected).getTime() - startOfDay(zonedNow).getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  if (daysDiff < 0 || daysDiff > settings.booking_window_days) return [];
-
+  const { timezone, isToday, isPastDate, isOutsideWindow } = getDateContext(date, settings, now);
+  if (isPastDate || isOutsideWindow) return [];
   if (dailyHours?.is_closed) return [];
-  if (!dailyHours?.open_time && !settings.first_tee_time) return [];
 
-  const openTime = (dailyHours?.open_time ?? settings.first_tee_time).slice(0, 8);
-  const closeTime = (dailyHours?.close_time ?? settings.last_tee_time).slice(0, 8);
-  const slots = generateTimeSlots(openTime, closeTime, settings.tee_interval_minutes);
-
-  const minNoticeCutoff = addMinutes(zonedNow, settings.minimum_booking_notice_minutes);
+  const slots = getScheduleSlots(settings, dailyHours);
 
   return slots
     .filter((time) => {
       if (isSlotBlocked(time, blocks)) return false;
       if (!canFitPlayers(bookings, time, maxPlayers, players)) return false;
-
-      const slotDateTime = parse(
-        `${date} ${time.slice(0, 5)}`,
-        "yyyy-MM-dd HH:mm",
-        new Date(),
-      );
-      const zonedSlot = toZonedTime(slotDateTime, timezone);
-
-      if (isBefore(zonedSlot, minNoticeCutoff)) return false;
-
+      if (
+        !isSlotInBookableFuture(
+          date,
+          time,
+          timezone,
+          now,
+          settings.minimum_booking_notice_minutes,
+          isToday,
+        )
+      ) {
+        return false;
+      }
       return true;
     })
     .map((time) => {
@@ -262,7 +342,7 @@ export function formatDateInTimezone(date: Date, timezone: string, fmt = "yyyy-M
 }
 
 export function getDayOfWeek(dateStr: string): number {
-  return parse(dateStr, "yyyy-MM-dd", new Date()).getDay();
+  return getDay(parse(dateStr, "yyyy-MM-dd", new Date()));
 }
 
 export function getDefaultBookingDates(timezone: string, windowDays: number): string[] {

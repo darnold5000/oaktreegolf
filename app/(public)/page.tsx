@@ -9,15 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AMENITY_CARDS, GALLERY_IMAGES, SITE } from "@/lib/constants";
 import { getCourseStatus } from "@/lib/data";
-import { getAvailableSlots, getDayOfWeek, getFirstAvailableSlot } from "@/lib/availability";
+import { getAvailableSlots, getDayOfWeekInTimezone, getFirstAvailableSlot } from "@/lib/availability";
 import { getBookingsForDate } from "@/lib/bookings";
 import { getBlockedTimesForDate, getCourseSettings, getDailyHours } from "@/lib/data";
-import { format } from "date-fns";
+import { formatDateInTimezone } from "@/lib/availability";
 
 export default async function HomePage() {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const [status, settings] = await Promise.all([getCourseStatus(today), getCourseSettings()]);
-  const dailyHours = await getDailyHours(getDayOfWeek(today));
+  const settings = await getCourseSettings();
+  const today = formatDateInTimezone(new Date(), settings.timezone);
+  const [status] = await Promise.all([getCourseStatus(today)]);
+  const dailyHours = await getDailyHours(getDayOfWeekInTimezone(today, settings.timezone));
   const bookings = await getBookingsForDate(today);
   const blocks = await getBlockedTimesForDate(today);
   const slots = getAvailableSlots({

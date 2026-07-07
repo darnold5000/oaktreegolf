@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { format } from "date-fns";
-import { buildTeeSheet, getDayOfWeek } from "@/lib/availability";
+import { buildTeeSheet, formatDateInTimezone, getDayOfWeekInTimezone } from "@/lib/availability";
 import { getBookingsForDate } from "@/lib/bookings";
 import { isNextResponse, requireStaffApi } from "@/lib/auth";
 import {
@@ -15,15 +14,15 @@ export async function GET(request: Request) {
   if (isNextResponse(auth)) return auth;
 
   const { searchParams } = new URL(request.url);
-  const date = searchParams.get("date") ?? format(new Date(), "yyyy-MM-dd");
+  const settings = await getCourseSettings();
+  const date = searchParams.get("date") ?? formatDateInTimezone(new Date(), settings.timezone);
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json({ error: "Invalid date" }, { status: 400 });
   }
 
   try {
-    const settings = await getCourseSettings();
-    const dailyHours = await getDailyHours(getDayOfWeek(date));
+    const dailyHours = await getDailyHours(getDayOfWeekInTimezone(date, settings.timezone));
     const bookings = await getBookingsForDate(date);
     const blocks = await getBlockedTimesForDate(date);
     const status = await getCourseStatus(date);

@@ -6,6 +6,7 @@ import { format, addDays } from "date-fns";
 import { toast } from "sonner";
 import { AvailableTeeTimes } from "@/components/booking/AvailableTeeTimes";
 import { BookingSuccess } from "@/components/booking/AvailableTeeTimes";
+import type { AvailabilityEmptyReason } from "@/lib/availability";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ export function BookingForm() {
   const [players, setPlayers] = useState(initialPlayers);
   const [selectedTime, setSelectedTime] = useState(initialTime);
   const [slots, setSlots] = useState<{ time: string; label: string; spotsRemaining?: number }[]>([]);
+  const [emptyReason, setEmptyReason] = useState<AvailabilityEmptyReason | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successBooking, setSuccessBooking] = useState<{
@@ -54,6 +56,7 @@ export function BookingForm() {
       const res = await fetch(`/api/availability?date=${nextDate}&players=${nextPlayers}`);
       const data = await res.json();
       setSlots(data.slots ?? []);
+      setEmptyReason(data.emptyReason ?? null);
     } catch {
       setSlots([]);
       toast.error("Could not load availability.");
@@ -171,6 +174,7 @@ export function BookingForm() {
               selectedTime={selectedTime}
               onSelect={setSelectedTime}
               loading={loadingSlots}
+              emptyReason={emptyReason}
             />
 
             <Button className="w-full" size="lg" onClick={handleContinue} disabled={!selectedTime}>

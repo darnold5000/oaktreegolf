@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  explainAvailabilityEmpty,
   getAvailableSlots,
-  getDayOfWeek,
+  getDayOfWeekInTimezone,
   getFirstAvailableSlot,
 } from "@/lib/availability";
 import { getBookingsForDate } from "@/lib/bookings";
@@ -32,26 +33,29 @@ export async function GET(request: Request) {
 
   try {
     const settings = await getCourseSettings();
-    const dailyHours = await getDailyHours(getDayOfWeek(date));
+    const dailyHours = await getDailyHours(getDayOfWeekInTimezone(date, settings.timezone));
     const bookings = await getBookingsForDate(date);
     const blocks = await getBlockedTimesForDate(date);
 
-    const slots = getAvailableSlots({
+    const availabilityInput = {
       date,
       players,
       settings,
       dailyHours,
       bookings,
       blocks,
-    });
+    };
 
+    const slots = getAvailableSlots(availabilityInput);
     const firstAvailable = getFirstAvailableSlot(slots);
+    const emptyReason = slots.length === 0 ? explainAvailabilityEmpty(availabilityInput) : null;
 
     return NextResponse.json({
       date,
       players,
       slots,
       firstAvailable,
+      emptyReason,
       publicBookingEnabled: settings.public_booking_enabled,
     });
   } catch (error) {

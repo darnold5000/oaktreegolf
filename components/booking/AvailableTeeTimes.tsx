@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { AvailabilityEmptyReason } from "@/lib/availability";
 
 interface AvailableTeeTimesProps {
   slots: {
@@ -13,6 +14,50 @@ interface AvailableTeeTimesProps {
   selectedTime?: string;
   onSelect: (time: string) => void;
   loading?: boolean;
+  emptyReason?: AvailabilityEmptyReason | null;
+}
+
+function emptyStateMessage(reason?: AvailabilityEmptyReason | null): {
+  title: string;
+  detail: string;
+} {
+  switch (reason) {
+    case "too_late_today":
+      return {
+        title: "No more tee times available today.",
+        detail: "Online booking requires at least 15 minutes notice. Try tomorrow or call the pro shop.",
+      };
+    case "fully_booked":
+      return {
+        title: "All tee times are booked for this date.",
+        detail: "Try another date or call the pro shop to check for cancellations.",
+      };
+    case "course_closed":
+      return {
+        title: "The course is closed on this date.",
+        detail: "Please choose another date or call the pro shop for help.",
+      };
+    case "booking_disabled":
+      return {
+        title: "Online booking is currently unavailable.",
+        detail: "Please call the pro shop to reserve a tee time.",
+      };
+    case "past_date":
+      return {
+        title: "This date has already passed.",
+        detail: "Please choose today or a future date.",
+      };
+    case "outside_window":
+      return {
+        title: "This date is outside the booking window.",
+        detail: "Please choose a date within the next two weeks.",
+      };
+    default:
+      return {
+        title: "No tee times available for this date.",
+        detail: "Try another date or call the pro shop.",
+      };
+  }
 }
 
 export function AvailableTeeTimes({
@@ -20,17 +65,19 @@ export function AvailableTeeTimes({
   selectedTime,
   onSelect,
   loading,
+  emptyReason,
 }: AvailableTeeTimesProps) {
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading available tee times...</p>;
   }
 
   if (slots.length === 0) {
+    const { title, detail } = emptyStateMessage(emptyReason);
     return (
       <div className="rounded-lg border border-dashed p-6 text-center">
-        <p className="font-medium">No tee times available for this date.</p>
+        <p className="font-medium">{title}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Try another date or call the pro shop at{" "}
+          {detail}{" "}
           <a href="tel:+13178396205" className="text-primary underline">
             317-839-6205
           </a>

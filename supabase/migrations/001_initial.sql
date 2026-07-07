@@ -36,7 +36,7 @@ create table if not exists public.oak_tree_course_settings (
   tee_interval_minutes int not null default 10,
   max_players_per_booking int not null default 4,
   booking_window_days int not null default 14,
-  minimum_booking_notice_minutes int not null default 60,
+  minimum_booking_notice_minutes int not null default 15,
   public_booking_enabled boolean not null default true,
   timezone text not null default 'America/Indiana/Indianapolis',
   first_tee_time time not null default '07:00:00',
