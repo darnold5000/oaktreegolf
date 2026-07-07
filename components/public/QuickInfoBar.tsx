@@ -17,22 +17,29 @@ export function QuickInfoBar({
 }: QuickInfoBarProps) {
   return (
     <section className="border-b bg-muted/20">
-      <div className="mx-auto grid max-w-7xl gap-3 px-4 py-4 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
-        <InfoItem icon={Phone} label="Pro Shop" value={SITE.phone} href={SITE.phoneHref} />
-        <InfoItem icon={MapPin} label="Location" value="Plainfield, IN" />
+      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-3 sm:grid-cols-2 lg:grid-cols-12 lg:px-8">
+        <div className="lg:col-span-2">
+          <InfoItem icon={Phone} label="Pro Shop" value={SITE.phone} href={SITE.phoneHref} />
+        </div>
+        <div className="lg:col-span-2">
+          <InfoItem icon={MapPin} label="Location" value="Plainfield, IN" />
+        </div>
         <AvailabilityBar
+          className="sm:col-span-2 lg:col-span-6"
           items={[
             { label: "Course", status: courseStatus, icon: Flag },
             { label: "Range", status: rangeStatus, icon: Clock },
             { label: "Carts", status: cartStatus, icon: CarFront },
           ]}
         />
-        <InfoItem
-          icon={Clock}
-          label="First Available"
-          value={firstAvailable ? formatTime(firstAvailable) : "Call pro shop"}
-          highlight
-        />
+        <div className="lg:col-span-2">
+          <InfoItem
+            icon={Clock}
+            label="First Available"
+            value={firstAvailable ? formatTime(firstAvailable) : "Call pro shop"}
+            highlight
+          />
+        </div>
       </div>
     </section>
   );
@@ -60,17 +67,17 @@ function InfoItem({
   highlight?: boolean;
 }) {
   const content = (
-    <div className="flex h-full items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-        <Icon className="h-4 w-4 text-primary" />
+    <div className="flex h-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-2.5 py-2 shadow-sm">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+        <Icon className="h-3.5 w-3.5 text-primary" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
         <p
           className={
             highlight
-              ? "mt-0.5 truncate text-sm font-semibold text-primary"
-              : "mt-0.5 truncate text-sm font-semibold"
+              ? "truncate text-sm font-semibold leading-tight text-primary"
+              : "truncate text-sm font-semibold leading-tight"
           }
         >
           {value}

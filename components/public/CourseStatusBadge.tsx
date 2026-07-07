@@ -42,16 +42,16 @@ export function StatusPill({ label, status, icon: Icon, className }: StatusPillP
   return (
     <div
       className={cn(
-        "inline-flex min-w-0 flex-1 items-center gap-2 rounded-full border px-3 py-2 sm:flex-none sm:px-3.5",
+        "inline-flex min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium sm:text-[11px]",
         tone.pill,
         className,
       )}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0 opacity-80" />
-      <span className="truncate text-xs font-semibold">{label}</span>
-      <span className="hidden h-3 w-px shrink-0 bg-current/15 sm:block" aria-hidden />
-      <span className={cn("flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold", tone.label)}>
-        <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} aria-hidden />
+      <Icon className="h-3 w-3 shrink-0 opacity-80" />
+      <span className="truncate">{label}</span>
+      <span className="h-2.5 w-px shrink-0 bg-current/15" aria-hidden />
+      <span className={cn("flex min-w-0 items-center gap-1 truncate", tone.label)}>
+        <span className={cn("h-1 w-1 shrink-0 rounded-full", tone.dot)} aria-hidden />
         <span className="truncate">{status}</span>
       </span>
     </div>
@@ -94,17 +94,23 @@ interface AvailabilityBarProps {
     status: string;
     icon: React.ComponentType<{ className?: string }>;
   }[];
+  className?: string;
 }
 
-export function AvailabilityBar({ items }: AvailabilityBarProps) {
+export function AvailabilityBar({ items, className }: AvailabilityBarProps) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-3 shadow-sm sm:col-span-2 lg:col-span-2">
-      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div
+      className={cn(
+        "flex h-full flex-col justify-center rounded-xl border border-border/60 bg-card px-2.5 py-2 shadow-sm",
+        className,
+      )}
+    >
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         Course & Range
       </p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <StatusPill key={item.label} {...item} className="sm:min-w-[7.5rem]" />
+          <StatusPill key={item.label} {...item} />
         ))}
       </div>
     </div>
