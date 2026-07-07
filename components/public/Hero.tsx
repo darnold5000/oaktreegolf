@@ -5,19 +5,19 @@ import { HERO_IMAGE, SITE } from "@/lib/constants";
 
 export function Hero() {
   return (
-    <section className="relative min-h-[70vh] overflow-hidden">
+    <section className="relative min-h-[55vh] overflow-hidden sm:min-h-[65vh] lg:min-h-[72vh]">
       <Image
         src={HERO_IMAGE}
-        alt="Oak Tree Golf Course"
+        alt="Oak Tree Golf Course fairway and water hazard at sunrise"
         fill
         priority
-        quality={90}
-        className="object-cover brightness-110 contrast-[1.02] saturate-[1.05]"
+        quality={95}
+        className="object-cover object-center brightness-105"
         sizes="100vw"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/55 via-primary/25 to-primary/10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-      <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-center px-4 py-16 lg:px-8">
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+      <div className="relative mx-auto flex min-h-[55vh] max-w-7xl flex-col justify-center px-4 py-16 sm:min-h-[65vh] lg:min-h-[72vh] lg:px-8">
         <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-primary-foreground/90">
           Plainfield, Indiana
         </p>

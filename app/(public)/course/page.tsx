@@ -11,18 +11,18 @@ export const metadata = {
 export default function CoursePage() {
   return (
     <div>
-      <section className="relative h-[40vh] min-h-[280px]">
+      <section className="relative h-[38vh] min-h-[240px] sm:min-h-[300px]">
         <Image
           src={HERO_IMAGE}
-          alt="Oak Tree Golf Course"
+          alt="Oak Tree Golf Course fairway and water hazard at sunrise"
           fill
           priority
-          quality={90}
-          className="object-cover brightness-110 contrast-[1.02] saturate-[1.05]"
+          quality={95}
+          className="object-cover object-center brightness-105"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/45 via-primary/15 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-10 lg:px-8">
           <h1 className="font-heading text-4xl font-semibold text-primary-foreground sm:text-5xl">
             The Course

@@ -16,8 +16,7 @@ export const SITE = {
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3056.8!2d-86.389!3d39.704!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886ca5c8c8c8c8c9%3A0x0!2s4712%20E%20US%20Hwy%2040%2C%20Plainfield%2C%20IN%2046168!5e0!3m2!1sen!2sus!4v1",
 } as const;
 
-export const HERO_IMAGE =
-  "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_2560,h_1440,al_c,q_90/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg";
+export const HERO_IMAGE = "/images/hero.jpg";
 
 export const GALLERY_IMAGES = [
   {
