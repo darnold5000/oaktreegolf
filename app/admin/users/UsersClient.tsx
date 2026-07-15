@@ -36,7 +36,7 @@ export default function UsersClient({ profile }: { profile: Profile }) {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Oak Tree staff are managed in <code className="text-xs">oak_tree_profiles</code> (separate from Dugout Intel users). Invite via Supabase Auth, then add a profile row with the correct role.
+            Pine Tree staff are managed in <code className="text-xs">oak_tree_profiles</code> (separate from Dugout Intel users). Invite via Supabase Auth, then add a profile row with the correct role.
           </p>
           {users.map((user) => (
             <div key={user.id} className="flex items-center justify-between rounded-lg border p-4">

@@ -73,7 +73,7 @@ export default function ContactPage() {
 
       <div className="mt-10 overflow-hidden rounded-xl border">
         <iframe
-          title="Oak Tree Golf Course Map"
+          title="Pine Tree Golf Course Map"
           src={SITE.mapEmbed}
           className="h-[400px] w-full border-0"
           loading="lazy"

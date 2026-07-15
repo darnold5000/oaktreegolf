@@ -5,7 +5,7 @@ import type { BlockedTime, CourseSettings, CourseStatus, DailyHours } from "@/li
 
 const DEFAULT_SETTINGS: CourseSettings = {
   id: "default",
-  course_name: "Oak Tree Golf Course",
+  course_name: "Pine Tree Golf Course",
   tee_interval_minutes: 10,
   max_players_per_booking: 4,
   booking_window_days: 14,

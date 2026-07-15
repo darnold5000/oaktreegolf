@@ -22,7 +22,7 @@ export function QuickInfoBar({
           <InfoItem icon={Phone} label="Pro Shop" value={SITE.phone} href={SITE.phoneHref} />
         </div>
         <div className="lg:col-span-2">
-          <InfoItem icon={MapPin} label="Location" value="Plainfield, IN" />
+          <InfoItem icon={MapPin} label="Location" value="Brownsburg, IN" />
         </div>
         <AvailabilityBar
           className="sm:col-span-2 lg:col-span-6"

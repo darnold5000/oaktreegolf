@@ -16,11 +16,11 @@ const libreBaskerville = Libre_Baskerville({
 
 export const metadata: Metadata = {
   title: {
-    default: "Oak Tree Golf Course | Plainfield, Indiana",
-    template: "%s | Oak Tree Golf Course",
+    default: "Pine Tree Golf Course | Brownsburg, Indiana",
+    template: "%s | Pine Tree Golf Course",
   },
   description:
-    "Public Pete Dye golf in Plainfield, Indiana. Book tee times online, view rates, and explore our 18-hole championship course.",
+    "Public Pete Dye golf in Brownsburg, Indiana. Book tee times online, view rates, and explore our 18-hole championship course.",
 };
 
 export default function RootLayout({

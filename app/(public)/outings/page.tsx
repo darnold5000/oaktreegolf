@@ -16,7 +16,7 @@ export default function OutingsPage() {
         <div className="mx-auto max-w-7xl">
           <h1 className="font-heading text-4xl font-semibold sm:text-5xl">Golf Outings</h1>
           <p className="mt-4 max-w-2xl text-lg text-primary-foreground/90">
-            Whether you are hosting 16 players or 144, Oak Tree Golf Course has a package to meet
+            Whether you are hosting 16 players or 144, Pine Tree Golf Course has a package to meet
             your needs.
           </p>
         </div>

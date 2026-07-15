@@ -19,7 +19,7 @@ export default function ProShopPage() {
         {[
           "Golf equipment & accessories",
           "Apparel for men and women",
-          "Gift items and Oak Tree merchandise",
+          "Gift items and Pine Tree merchandise",
           "Club fitting and recommendations",
         ].map((item) => (
           <Card key={item}>

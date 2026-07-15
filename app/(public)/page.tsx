@@ -46,18 +46,24 @@ export default async function HomePage() {
         <BookingWidget />
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading text-3xl font-semibold">About Oak Tree</h2>
+            <h2 className="font-heading text-3xl font-semibold">About Pine Tree</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Located on U.S. 40, just 10 minutes west of the Indianapolis International Airport,
-              Oak Tree Golf Course is a spectacular Pete Dye layout open to the public. From the
-              beautiful 18-hole championship layout to the fully stocked pro shop, Oak Tree is one
+              Located just minutes west of Indianapolis,
+              Pine Tree Golf Course is a spectacular Pete Dye layout open to the public. From the
+              beautiful 18-hole championship layout to the fully stocked pro shop, Pine Tree is one
               of the finest facilities on the city&apos;s Westside.
             </p>
           </div>
           <Card>
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-semibold text-primary">
-                BW
+              <div className="relative h-14 w-14 overflow-hidden rounded-full bg-primary/10">
+                <Image
+                  src="/images/manager.jpg"
+                  alt={SITE.manager}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
               </div>
               <div>
                 <p className="font-semibold">{SITE.manager}</p>

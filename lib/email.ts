@@ -22,17 +22,17 @@ function cartLabel(preference: string): string {
 export async function sendBookingConfirmation(booking: Booking): Promise<void> {
   if (!resend || !booking.customer_email) return;
 
-  const from = process.env.RESEND_FROM_EMAIL ?? "bookings@oaktreegolf.net";
+  const from = process.env.RESEND_FROM_EMAIL ?? "bookings@pinetreegolf.com";
 
   await resend.emails.send({
     from,
     to: booking.customer_email,
-    subject: "Your Oak Tree Golf Course Tee Time",
+    subject: "Your Pine Tree Golf Course Tee Time",
     html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="color: #1a3d2e;">Your tee time is confirmed</h1>
         <p>Hi ${booking.customer_name},</p>
-        <p>Thank you for booking at Oak Tree Golf Course. Here are your reservation details:</p>
+        <p>Thank you for booking at Pine Tree Golf Course. Here are your reservation details:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
           <tr><td style="padding: 8px 0;"><strong>Date</strong></td><td>${formatBookingDate(booking.booking_date)}</td></tr>
           <tr><td style="padding: 8px 0;"><strong>Time</strong></td><td>${formatBookingTime(booking.tee_time)}</td></tr>
@@ -55,7 +55,7 @@ export async function sendStaffBookingNotification(booking: Booking): Promise<vo
   const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL;
   if (!resend || !staffEmail) return;
 
-  const from = process.env.RESEND_FROM_EMAIL ?? "bookings@oaktreegolf.net";
+  const from = process.env.RESEND_FROM_EMAIL ?? "bookings@pinetreegolf.com";
 
   await resend.emails.send({
     from,

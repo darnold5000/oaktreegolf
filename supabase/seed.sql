@@ -1,4 +1,4 @@
--- Oak Tree seed data (safe to run on shared Dugout Intel Supabase project)
+-- Pine Tree seed data (safe to run on shared Dugout Intel Supabase project)
 
 insert into public.oak_tree_course_settings (
   course_name,
@@ -12,7 +12,7 @@ insert into public.oak_tree_course_settings (
   last_tee_time
 )
 select
-  'Oak Tree Golf Course',
+  'Pine Tree Golf Course',
   10,
   4,
   14,

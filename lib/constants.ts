@@ -1,19 +1,19 @@
 export const SITE = {
-  name: "Oak Tree Golf Course",
-  tagline: "Public Pete Dye Golf in Plainfield, Indiana",
+  name: "Pine Tree Golf Course",
+  tagline: "Public Pete Dye Golf in Brownsburg, Indiana",
   subtagline: "18-hole championship layout just minutes west of Indianapolis.",
-  address: "4712 E US Hwy 40, Plainfield, IN 46168",
-  phone: "317-839-6205",
-  phoneHref: "tel:+13178396205",
-  email: "sweaver@oaktreegolf.net",
-  manager: "Ben Weaver",
+  address: "2450 Pine Ridge Rd, Brownsburg, IN 46112",
+  phone: "(317) 555-0142",
+  phoneHref: "tel:+13175550142",
+  email: "proshop@pinetreegolf.com",
+  manager: "Ryan Holt",
   managerTitle: "General Manager",
   hours: "Open daily — call for seasonal tee times",
   social: {
-    facebook: "https://www.facebook.com/oaktreegolf",
+    facebook: "https://www.facebook.com/pinetreegolf",
   },
   mapEmbed:
-    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3056.8!2d-86.389!3d39.704!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886ca5c8c8c8c8c9%3A0x0!2s4712%20E%20US%20Hwy%2040%2C%20Plainfield%2C%20IN%2046168!5e0!3m2!1sen!2sus!4v1",
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3056.8!2d-86.397!3d39.843!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s2450%20Pine%20Ridge%20Rd%2C%20Brownsburg%2C%20IN%2046112!5e0!3m2!1sen!2sus!4v1",
 } as const;
 
 export const HERO_IMAGE = "/images/hero.jpg";
@@ -21,19 +21,19 @@ export const HERO_IMAGE = "/images/hero.jpg";
 export const GALLERY_IMAGES = [
   {
     src: "https://static.wixstatic.com/media/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_1600,h_1200,al_c,q_90/ed04af_bae87069476d4bad9fda8fd4168a3a96~mv2_d_4032_3024_s_4_2.jpg",
-    alt: "Oak Tree Golf Course fairway",
+    alt: "Pine Tree Golf Course fairway",
   },
   {
     src: "https://static.wixstatic.com/media/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg/v1/fill/w_1600,h_1200,al_c,q_90/ed04af_50c2eb63eefc40c0b99852c7e969f54b~mv2_d_4032_3024_s_4_2.jpg",
-    alt: "Oak Tree Golf Course greens",
+    alt: "Pine Tree Golf Course greens",
   },
   {
     src: "https://static.wixstatic.com/media/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png/v1/fill/w_1600,h_800,al_c,q_90/ed04af_de4fc6c6dce4421b8f3a11787bb49f8f~mv2.png",
-    alt: "Oak Tree Golf Course aerial view",
+    alt: "Pine Tree Golf Course aerial view",
   },
   {
     src: "https://static.wixstatic.com/media/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg/v1/crop/x_0,y_0,w_2423,h_3053/fill/w_1200,h_1510,al_c,q_90/ed04af_715ce910640d432da0336e143a214342~mv2_d_2550_3300_s_4_2.jpg",
-    alt: "Oak Tree Golf Course scorecard",
+    alt: "Pine Tree Golf Course scorecard",
   },
 ] as const;
 

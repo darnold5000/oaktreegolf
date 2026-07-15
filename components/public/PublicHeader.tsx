@@ -17,7 +17,7 @@ export function PublicHeader() {
           <span className="font-heading text-lg font-semibold tracking-tight text-primary sm:text-xl">
             {SITE.name}
           </span>
-          <span className="hidden text-xs text-muted-foreground sm:block">Plainfield, Indiana</span>
+          <span className="hidden text-xs text-muted-foreground sm:block">Brownsburg, Indiana</span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

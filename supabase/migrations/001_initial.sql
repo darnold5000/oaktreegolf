@@ -1,4 +1,4 @@
--- Oak Tree Golf Course schema for the shared Dugout Intel Supabase project.
+-- Pine Tree Golf Course schema for the shared Dugout Intel Supabase project.
 -- Creates ONLY oak_tree_* tables, functions, triggers, and policies.
 -- Does NOT modify Dugout Intel tables, auth triggers, RLS, or storage.
 
@@ -32,7 +32,7 @@ create table if not exists public.oak_tree_profiles (
 
 create table if not exists public.oak_tree_course_settings (
   id uuid primary key default gen_random_uuid(),
-  course_name text not null default 'Oak Tree Golf Course',
+  course_name text not null default 'Pine Tree Golf Course',
   tee_interval_minutes int not null default 10,
   max_players_per_booking int not null default 4,
   booking_window_days int not null default 14,

@@ -14,7 +14,7 @@ export default function CoursePage() {
       <section className="relative h-[38vh] min-h-[240px] sm:min-h-[300px]">
         <Image
           src={HERO_IMAGE}
-          alt="Oak Tree Golf Course fairway and water hazard at sunrise"
+          alt="Pine Tree Golf Course fairway and water hazard at sunrise"
           fill
           priority
           quality={95}
@@ -34,16 +34,16 @@ export default function CoursePage() {
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              Oak Tree Golf Course is an 18-hole championship Pete Dye layout open to the public on
-              the west side of Indianapolis in Plainfield, Indiana.
+              Pine Tree Golf Course is an 18-hole championship Pete Dye layout open to the public on
+              the west side of Indianapolis in Brownsburg, Indiana.
             </p>
             <p>
-              Originally opened in 1962 as a 9-hole course and expanded to 18 holes in 1975, Oak Tree
+              Originally opened in 1962 as a 9-hole course and expanded to 18 holes in 1975, Pine Tree
               features tree-lined fairways, undulating greens, and water in play on five holes.
             </p>
             <p>
               Par 72 from the back tees at 6,479 yards. Whether you&apos;re a seasoned golfer or just
-              starting out, Oak Tree offers a memorable round for every skill level.
+              starting out, Pine Tree offers a memorable round for every skill level.
             </p>
             <Button asChild>
               <Link href="/scorecard">View Scorecard</Link>

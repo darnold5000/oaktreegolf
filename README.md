@@ -1,6 +1,6 @@
-# Oak Tree Golf Course
+# Pine Tree Golf Course
 
-Modern website and tee time booking system for Oak Tree Golf Course in Plainfield, Indiana.
+Modern website and tee time booking system for Pine Tree Golf Course in Brownsburg, Indiana.
 
 ## Stack
 
@@ -18,7 +18,7 @@ Modern website and tee time booking system for Oak Tree Golf Course in Plainfiel
 cp .env.example .env.local
 ```
 
-2. Use the **existing Dugout Intel Supabase project** credentials in `.env.local`, then run the Oak Tree migration in the Supabase SQL editor:
+2. Use the **existing Dugout Intel Supabase project** credentials in `.env.local`, then run the Pine Tree migration in the Supabase SQL editor:
 
 ```bash
 # 1. Apply supabase/migrations/001_initial.sql  (creates oak_tree_* tables only)
@@ -49,7 +49,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Staff Setup
 
-Oak Tree uses **shared Supabase Auth** with roles stored in `oak_tree_profiles` (not Dugout Intel profile tables).
+Pine Tree uses **shared Supabase Auth** with roles stored in `oak_tree_profiles` (not Dugout Intel profile tables).
 
 1. Create or reuse a user in Supabase Auth
 2. Insert a row into `oak_tree_profiles` with that user's `id` and role `admin` or `staff`
@@ -59,7 +59,7 @@ Example (run in Supabase SQL editor after creating the auth user):
 
 ```sql
 insert into public.oak_tree_profiles (id, full_name, role)
-values ('<auth-user-uuid>', 'Ben Weaver', 'admin');
+values ('<auth-user-uuid>', 'Ryan Holt', 'admin');
 ```
 
 ## Features

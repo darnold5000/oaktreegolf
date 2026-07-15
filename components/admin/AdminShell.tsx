@@ -36,7 +36,7 @@ export function AdminShell({
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Staff Dashboard</p>
-            <h1 className="font-heading text-lg font-semibold">Oak Tree Tee Sheet</h1>
+            <h1 className="font-heading text-lg font-semibold">Pine Tree Tee Sheet</h1>
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-muted-foreground sm:inline">

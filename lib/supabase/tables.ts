@@ -1,5 +1,5 @@
 /**
- * Oak Tree table names in the shared Dugout Intel Supabase project.
+ * Pine Tree table names in the shared Dugout Intel Supabase project.
  * Prefixed to avoid collisions with existing Dugout Intel tables.
  */
 export const OAK_TREE_TABLES = {

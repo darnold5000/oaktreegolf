@@ -8,7 +8,7 @@ export function PublicFooter() {
         <div className="lg:col-span-2">
           <h2 className="font-heading text-2xl font-semibold">{SITE.name}</h2>
           <p className="mt-2 max-w-md text-sm text-primary-foreground/80">
-            Located on U.S. 40, just 10 minutes west of Indianapolis International Airport.
+            Located just minutes west of Indianapolis.
             A spectacular Pete Dye layout open to the public.
           </p>
         </div>

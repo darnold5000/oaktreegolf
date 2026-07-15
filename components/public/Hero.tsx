@@ -8,7 +8,7 @@ export function Hero() {
     <section className="relative min-h-[55vh] overflow-hidden sm:min-h-[65vh] lg:min-h-[72vh]">
       <Image
         src={HERO_IMAGE}
-        alt="Oak Tree Golf Course fairway and water hazard at sunrise"
+        alt="Pine Tree Golf Course fairway and water hazard at sunrise"
         fill
         priority
         quality={95}
@@ -19,7 +19,7 @@ export function Hero() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
       <div className="relative mx-auto flex min-h-[55vh] max-w-7xl flex-col justify-center px-4 py-16 sm:min-h-[65vh] lg:min-h-[72vh] lg:px-8">
         <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-primary-foreground/90">
-          Plainfield, Indiana
+          Brownsburg, Indiana
         </p>
         <h1 className="max-w-3xl font-heading text-4xl font-semibold leading-tight text-primary-foreground drop-shadow-sm sm:text-5xl lg:text-6xl">
           {SITE.tagline}
