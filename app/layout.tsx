@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   },
   description:
     "Public Pete Dye golf in Plainfield, Indiana. Book tee times online, view rates, and explore our 18-hole championship course.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
